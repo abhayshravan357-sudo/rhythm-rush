@@ -16,18 +16,24 @@ Wave 2 — Architecture & Game Design (IN PROGRESS)
 - T-11 Shared skills library: .agents/skills/
 - T-12 Worktree & branch architecture: WORKTREE_REGISTRY.md + branch provisioning
 
-Wave 3 — Playable MVP (PENDING — awaits Wave 2 approval)
-- T-13 Main menu (logo, play, song library, settings)
-- T-14 Song selection (catalogue, locked/unlocked, preview)
-- T-15 One playable song (original/public-domain audio)
-- T-16 Four-lane tile gameplay with descending tiles
-- T-17 Music synchronization (audio clock, not frame delta)
-- T-18 Touch detection & hit registration
-- T-19 Scoring, combo, accuracy
-- T-20 Game-over & results screens
-- T-21 Restart functionality
-- T-22 Android debug APK generation
-- T-23 MVP verification on real Android device
+Wave 3 — MVP Implementation (IN PROGRESS - AUTHORIZED 2026-10-31)
+
+MVP-01 — Core architecture and game lifecycle (IN PROGRESS)
+- T-MVP-01a [Agent 01 Architecture] Game state machine (menu/gameplay/pause/results/game-over), autoload verification
+- T-MVP-01b [Agent 02 Gameplay] 4-lane lane management, touch input routing
+- T-MVP-01c [Agent 03 Audio] AudioSync integration verification, latency calibration flow
+- T-MVP-01d [Agent 04 UI] Menu structure, scene transitions foundation
+- T-MVP-01e [Agent 05 Systems] ScoreManager API, local persistence structure
+- T-MVP-01f [Agent 06 QA] Test framework setup, unit tests for scoring
+- T-MVP-01g [Agent 07 Android] Export preset configuration verification
+- T-MVP-01h [Agent 00 Chief] Coordination, integration log, blockers
+
+MVP-02 — Four-lane gameplay and tile spawning (PENDING)
+MVP-03 — Audio synchronization, input and scoring (PENDING)
+MVP-04 — Menu, pause, resume and results integration (PENDING)
+MVP-05 — One complete playable song and gameplay validation (PENDING)
+MVP-06 — Android export and real-device testing (PENDING)
+MVP-07 — Performance, stability and release-readiness review (PENDING)
 
 Wave 4 — Core Game Expansion (PENDING)
 - T-24 Multiple songs + difficulty levels (Easy/Normal/Hard/Expert)
