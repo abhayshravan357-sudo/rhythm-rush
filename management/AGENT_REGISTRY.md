@@ -1,7 +1,7 @@
 # AGENT REGISTRY — PROJECT RHYTHM
 
 Designated model for all agents: nemotron 3.5 super vl (free)
-Integration branch: master
+Integration branch: main
 Verification rule: An agent is "active" only when its session has been verified via Agent Manager.
 
 | ID | Identity | Role | Model | Worktree | Branch | Session ID | Verified | Ownership | Status | Current assignment |

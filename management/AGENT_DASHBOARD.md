@@ -2,7 +2,7 @@
 
 Project: PROJECT RHYTHM
 Working directory: /home/abhaysawant/hexa-rhythm
-Integration branch: master (actual repository default)
+Integration branch: main (actual repository default)
 Designated model: nemotron 3.5 super vl (free) — all worktree agents
 Reference gameplay: Magic Tiles 3 (gameplay inspiration only — no copied assets/IP)
 Product goal: Original, offline-first Android rhythm game APK
