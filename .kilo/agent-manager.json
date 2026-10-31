@@ -1,0 +1,21 @@
+{
+  "worktrees": {},
+  "sessions": {
+    "ses_e6e1ade1cffeZS9qGcHXjMPudi": {
+      "worktreeId": null,
+      "createdAt": "2026-10-31T12:17:55.264Z"
+    }
+  },
+  "tabOrder": {
+    "local": [
+      "pending:573f3b9e-05e8-4e50-bbbd-1a1f8f5a909c",
+      "ses_e6e1ade1cffeZS9qGcHXjMPudi"
+    ]
+  },
+  "sessionsCollapsed": true,
+  "activeTarget": {
+    "projectId": "prj-664a5f8aad87",
+    "kind": "session",
+    "sessionId": "ses_e6e1ade1cffeZS9qGcHXjMPudi"
+  }
+}

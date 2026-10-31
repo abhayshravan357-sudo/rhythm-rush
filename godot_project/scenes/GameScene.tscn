@@ -1,0 +1,66 @@
+[gd_scene load_steps=4 format=3 uid="uid://game_scene"]
+
+[ext_resource type="Script" path="res://scripts/LaneManager.gd" id="1_lane"]
+[ext_resource type="Script" path="res://scripts/NoteSpawner.gd" id="2_spawn"]
+
+[node name="GameScene" type="Node2D"]
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.04, 0.04, 0.08, 1)
+
+[node name="LaneManager" type="Node2D" parent="."]
+script = ExtResource("1_lane")
+
+[node name="LaneDividers" type="Node2D" parent="LaneManager"]
+
+[node name="JudgmentLine" type="ColorRect" parent="LaneManager"]
+name = "JudgmentLine"
+color = Color(1.0, 1.0, 1.0, 0.4)
+size = Vector2(1920, 4)
+position = Vector2(0, 918)
+
+[node name="NoteSpawner" type="Node2D" parent="."]
+script = ExtResource("2_spawn")
+
+[node name="AudioPlayer" type="AudioStreamPlayer" parent="."]
+name = "AudioPlayer"
+volume_db = 0.0
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="ScoreLabel" type="Label" parent="HUD"]
+name = "ScoreLabel"
+anchor_right = 1.0
+text = "0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 48
+position = Vector2(0, 20)
+
+[node name="ComboLabel" type="Label" parent="HUD"]
+name = "ComboLabel"
+anchor_right = 1.0
+text = ""
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 36
+position = Vector2(0, 80)
+modulate = Color(1.0, 0.9, 0.2, 1)
+
+[node name="RatingLabel" type="Label" parent="HUD"]
+name = "RatingLabel"
+anchor_right = 1.0
+anchor_top = 0.5
+anchor_bottom = 0.5
+text = ""
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 64
+position = Vector2(0, -40)
+modulate = Color(1.0, 1.0, 1.0, 0)
+
+[node name="PauseButton" type="Button" parent="HUD"]
+name = "PauseButton"
+text = "II"
+position = Vector2(20, 20)
+size = Vector2(80, 60)
+theme_override_font_sizes/font_size = 28

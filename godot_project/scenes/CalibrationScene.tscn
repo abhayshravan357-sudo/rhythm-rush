@@ -1,0 +1,92 @@
+[gd_scene load_steps=1 format=3 uid="uid://calibration_scene"]
+
+[node name="CalibrationScene" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.04, 0.04, 0.08, 1)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0.05
+anchor_bottom = 0.95
+offset_left = -450.0
+offset_right = 450.0
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="VBox"]
+text = "LATENCY CALIBRATION"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 52
+
+[node name="InstructionLabel" type="Label" parent="VBox"]
+text = "Press Start, then tap the button in time with each pulse.\nAfter 12 taps your offset will be saved automatically."
+horizontal_alignment = 1
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 22
+
+[node name="Spacer1" type="Control" parent="VBox"]
+custom_minimum_size = Vector2(0, 30)
+
+[node name="BeatIndicator" type="ColorRect" parent="VBox"]
+name = "BeatIndicator"
+custom_minimum_size = Vector2(0, 140)
+color = Color(0.15, 0.15, 0.20, 1)
+
+[node name="BeatLabel" type="Label" parent="VBox/BeatIndicator"]
+name = "BeatLabel"
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "●"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 72
+modulate = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Spacer2" type="Control" parent="VBox"]
+custom_minimum_size = Vector2(0, 30)
+
+[node name="TapButton" type="Button" parent="VBox"]
+name = "TapButton"
+custom_minimum_size = Vector2(0, 120)
+text = "TAP"
+theme_override_font_sizes/font_size = 48
+disabled = true
+
+[node name="Spacer3" type="Control" parent="VBox"]
+custom_minimum_size = Vector2(0, 20)
+
+[node name="TapCountLabel" type="Label" parent="VBox"]
+name = "TapCountLabel"
+text = "Taps: 0 / 12"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+
+[node name="ResultLabel" type="Label" parent="VBox"]
+name = "ResultLabel"
+text = ""
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+modulate = Color(0.4, 1.0, 0.5, 1)
+
+[node name="Spacer4" type="Control" parent="VBox"]
+custom_minimum_size = Vector2(0, 20)
+
+[node name="HBox" type="HBoxContainer" parent="VBox"]
+alignment = 1
+
+[node name="StartButton" type="Button" parent="VBox/HBox"]
+name = "StartButton"
+custom_minimum_size = Vector2(220, 70)
+text = "Start"
+theme_override_font_sizes/font_size = 28
+
+[node name="BackButton" type="Button" parent="VBox/HBox"]
+name = "BackButton"
+custom_minimum_size = Vector2(220, 70)
+text = "Back"
+theme_override_font_sizes/font_size = 28

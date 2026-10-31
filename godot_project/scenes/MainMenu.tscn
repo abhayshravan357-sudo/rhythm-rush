@@ -1,0 +1,87 @@
+[gd_scene load_steps=2 format=3 uid="uid://main_menu"]
+
+[ext_resource type="Script" path="res://scripts/MenuNetworkSyncReceiver.gd" id="1_recv"]
+
+[node name="MainMenu" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_recv")
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.04, 0.04, 0.08, 1)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0.1
+anchor_bottom = 0.9
+offset_left = -400.0
+offset_right = 400.0
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="VBox"]
+text = "HEXA-RHYTHM"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 72
+
+[node name="Spacer1" type="Control" parent="VBox"]
+custom_minimum_size = Vector2(0, 40)
+
+[node name="ServerIPLabel" type="Label" parent="VBox"]
+text = "Server IP Address"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+
+[node name="IPInput" type="LineEdit" parent="VBox"]
+name = "IPInput"
+custom_minimum_size = Vector2(0, 60)
+placeholder_text = "192.168.1.50"
+text = "192.168.1.50"
+alignment = 1
+theme_override_font_sizes/font_size = 28
+
+[node name="SyncButton" type="Button" parent="VBox"]
+name = "SyncButton"
+custom_minimum_size = Vector2(0, 70)
+text = "Sync Song Catalog"
+theme_override_font_sizes/font_size = 28
+
+[node name="Spacer2" type="Control" parent="VBox"]
+custom_minimum_size = Vector2(0, 20)
+
+[node name="SongListLabel" type="Label" parent="VBox"]
+text = "Song Catalog"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+
+[node name="SongList" type="ItemList" parent="VBox"]
+name = "SongList"
+custom_minimum_size = Vector2(0, 300)
+theme_override_font_sizes/font_size = 22
+
+[node name="Spacer3" type="Control" parent="VBox"]
+custom_minimum_size = Vector2(0, 20)
+
+[node name="HBox" type="HBoxContainer" parent="VBox"]
+alignment = 1
+
+[node name="PlayButton" type="Button" parent="VBox/HBox"]
+name = "PlayButton"
+custom_minimum_size = Vector2(250, 70)
+text = "Play"
+theme_override_font_sizes/font_size = 28
+
+[node name="CalibrateButton" type="Button" parent="VBox/HBox"]
+name = "CalibrateButton"
+custom_minimum_size = Vector2(250, 70)
+text = "Calibrate"
+theme_override_font_sizes/font_size = 28
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+name = "StatusLabel"
+text = ""
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+modulate = Color(0.6, 1.0, 0.6, 1)
