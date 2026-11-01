@@ -19,7 +19,10 @@ Wave 2 — Architecture & Game Design (IN PROGRESS)
 Wave 3 — MVP Implementation (IN PROGRESS - AUTHORIZED 2026-10-31)
 
 MVP-01 — Core architecture and game lifecycle (COMPLETE — 2026-10-31)
-- All tasks complete. Test results on integrated main: 41 passed, 3 failed (laneCount mismatch — QA chart_loader tests expect 6, chart is 4). Defect carried into MVP-02.
+- T-MVP-01f [Agent 06 QA] Test framework + scoring unit tests: pytest suite in tests/ (pytest.ini, conftest.py, tests/unit/{scoring_engine.py,chart_loader.py,test_scoring.py,test_chart_loader.py}).
+  Test results: 44 passed, 0 failed (charts/example_chart.json laneCount 4).
+  Coverage: hit windows PERFECT ≤50 ms (300 pts) / GOOD ≤100 ms (100 pts) / MISS >100 ms (0 pts); combo/max combo; accuracy; grade; negative-score prevention; duplicate-hit prevention; ChartLoader schema load/validate/get_notes_in_window/get_metadata incl. failure modes.
+  Calibration: tests implement calibrated MVP-01 windows (50/100 ms). godot_project/scripts/ScoreManager.gd still ships pre-calibration windows (45/90/150 ms OK tier + 180 ms outer bound) — update tracked for Agent 00 coordination; tests/ not modified to match pre-calibration values.
 
 MVP-02 — Four-lane gameplay and tile spawning (IN PROGRESS - AUTHORIZED 2026-11-01)
 - T-MVP-02a [Agent 01 Architecture] Game state machine wiring, initialization contract, scene-to-controller bridge
