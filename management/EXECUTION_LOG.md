@@ -44,11 +44,17 @@
 | B-07 | Gameplay unit tests missing | Agent 06 | Add per T-MVP-02.1c |
 | B-08 | Duplicate -2 branches/worktrees | Agent 00 | Archive or delete with approval |
 
-## Integration Log (To Be Populated)
+## Integration Log
 
 | Date | Source Branch | Target | Commit | Reviewer | Result |
 |------|---------------|--------|--------|----------|--------|
-| — | — | — | — | — | — |
+| 2026-11-01 | agent/project-rhythm-audio | main | 7056b1d | Agent 00 | SUCCESS | AudioSync utility methods |
+| 2026-11-01 | agent/project-rhythm-gameplay | main | c0ef5a9 | Agent 00 | SUCCESS | LaneManager + docs |
+| 2026-11-01 | agent/project-rhythm-android | main | 2cbf5e6 | Agent 00 | SUCCESS | Android docs |
+| 2026-11-01 | local (Chief Engineer) | main | 4407afe | Agent 00 | SUCCESS | MainMenuUI + GameScene + 45 new tests |
+| 2026-11-01 | local (Chief Engineer) | main | fe878c5 | Agent 00 | SUCCESS | Management docs update |
+| 2026-11-01 | local (Chief Engineer) | main | 85f334a | Agent 00 | SUCCESS | MVP02 integration report |
+| 2026-11-01 | local (Chief Engineer) | main | 14eb0e5 | Agent 00 | SUCCESS | Execution log update |
 
 ## Decision Register (To Be Populated)
 
