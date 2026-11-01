@@ -16,18 +16,20 @@ Wave 2 — Architecture & Game Design (IN PROGRESS)
 - T-11 Shared skills library: .agents/skills/
 - T-12 Worktree & branch architecture: WORKTREE_REGISTRY.md + branch provisioning
 
-Wave 3 — Playable MVP (PENDING — awaits Wave 2 approval)
-- T-13 Main menu (logo, play, song library, settings)
-- T-14 Song selection (catalogue, locked/unlocked, preview)
-- T-15 One playable song (original/public-domain audio)
-- T-16 Four-lane tile gameplay with descending tiles
-- T-17 Music synchronization (audio clock, not frame delta)
-- T-18 Touch detection & hit registration
-- T-19 Scoring, combo, accuracy
-- T-20 Game-over & results screens
-- T-21 Restart functionality
-- T-22 Android debug APK generation
-- T-23 MVP verification on real Android device
+Wave 3 — MVP Implementation (IN PROGRESS - AUTHORIZED 2026-10-31)
+
+MVP-01 — Core architecture and game lifecycle (COMPLETE — 2026-10-31)
+- All tasks complete. Test results on integrated main: 41 passed, 3 failed (laneCount mismatch — QA chart_loader tests expect 6, chart is 4). Defect carried into MVP-02.
+
+MVP-02 — Four-lane gameplay and tile spawning (IN PROGRESS - AUTHORIZED 2026-11-01)
+- T-MVP-02a [Agent 01 Architecture] Game state machine wiring, initialization contract, scene-to-controller bridge
+- T-MVP-02b [Agent 02 Gameplay] 4-lane gameplay, tile spawning, hit detection, object pooling, input gating
+- T-MVP-02c [Agent 03 Audio] Audio clock → gameplay integration, 4-lane chart validation
+- T-MVP-02d [Agent 04 UI] Gameplay HUD, scene transitions, pause/resume wiring
+- T-MVP-02e [Agent 05 Systems] Scoring query API, signals, initialization from chart
+- T-MVP-02f [Agent 06 QA] Fix 3 failing tests, add gameplay tests (spawning, lanes, hit/miss, duplicate prevention, pool reuse)
+- T-MVP-02g [Agent 07 Android] Export readiness docs, blocker tracking
+- T-MVP-02h [Agent 00 Chief] Coordination, integration review, initialization contract enforcement
 
 Wave 4 — Core Game Expansion (PENDING)
 - T-24 Multiple songs + difficulty levels (Easy/Normal/Hard/Expert)

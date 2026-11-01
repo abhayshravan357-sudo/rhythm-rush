@@ -54,10 +54,21 @@ func _process(_delta: float) -> void:
 
 	var playback_time: float = AudioSync.adjusted_system_time
 
-	# Spawn notes that are now within the visible approach window
+	# Spawn notes that are now within the visible approach window.
+	# A tile is only deployed before its intended hit time; notes already past
+	# their hit time are skipped (never rendered after hit time) and are
+	# resolved as hits/misses by ScoreManager instead.
 	while next_evaluative_note_index < tracking_chart_timeline.size():
 		var note_data: Dictionary = tracking_chart_timeline[next_evaluative_note_index]
-		if note_data["timestamp"] - AudioSync.APPROACH_TIME <= playback_time:
+		var hit_time: float = note_data["timestamp"]
+
+		if playback_time >= hit_time:
+			# Hit time already passed without spawning; do not render a tile.
+			# ScoreManager owns hit/miss resolution for these notes.
+			next_evaluative_note_index += 1
+			continue
+
+		if hit_time - AudioSync.APPROACH_TIME <= playback_time:
 			_deploy_pool_element(note_data, next_evaluative_note_index)
 			next_evaluative_note_index += 1
 		else:
