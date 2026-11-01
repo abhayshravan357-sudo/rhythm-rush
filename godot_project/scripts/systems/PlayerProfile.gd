@@ -1,285 +1,301 @@
 # PlayerProfile.gd
-# Player profile: level, XP, high scores, personal bests, statistics.
-# Persisted to user://profile.dat via SaveManager. All data validated on load;
-# defaults applied for missing/corrupt fields. No hardcoded secrets.
+# Autoload Singleton — offline-first player profile persistence (user://).
+#
+# Persists: level, XP, per-song high scores / personal bests, song unlock
+# states, play statistics, achievements, daily-reward state.
+#
+# All persisted data is validated on load; defaults are applied for missing or
+# corrupt fields. No secrets are stored.
+
 extends Node
+class_name PlayerProfile
 
-const SAVE_PATH: String = "user://profile.dat"
-const MAX_LEVEL: int = 99
+signal profile_loaded
+signal profile_saved
+signal high_score_updated(song_id: String, score: int)
+signal song_unlocked(song_id: String)
+signal level_up(new_level: int)
 
-var level: int = 1
-var xp: int = 0
-var xp_to_next_level: int = 100
-var high_scores: Dictionary = {}      # song_id -> best score (int)
-var personal_bests: Dictionary = {}   # song_id -> {score, max_combo, accuracy, grade, played_at}
-var statistics: Dictionary = {}       # aggregate session/all-time stats
+const PROFILE_PATH: String = "user://profile.cfg"
 
-var _save_mgr: SaveManager = null
+var _profile: Dictionary = {
+	"level": 1,
+	"xp": 0,
+	"xp_to_next": 100,
+	"total_score": 0,
+	"plays": 0,
+	"perfects": 0,
+	"goods": 0,
+	"misses": 0,
+	"max_combo_ever": 0,
+	"high_scores": {},
+	"song_unlocks": {},
+	"achievements": {},
+	"daily": {
+		"last_reward_date": "",
+		"streak": 0,
+	},
+}
+
+var _dirty: bool = false
 
 
-func _enter_tree() -> void:
-	_ensure_save()
+func _ready() -> void:
+	load_profile()
 
 
-func _ensure_save() -> SaveManager:
-	if _save_mgr == null:
-		_save_mgr = SaveManager.new()
-	return _save_mgr
+func load_profile() -> Dictionary:
+	var config := ConfigFile.new()
+	var err: Error = config.load(PROFILE_PATH)
+	if err != OK:
+		_profile = _default_profile()
+		emit_signal("profile_loaded", _profile.duplicate())
+		return _profile.duplicate()
+
+	var raw_level: int = int(config.get_value("profile", "level", 1))
+	var raw_xp: int = int(config.get_value("profile", "xp", 0))
+	var raw_xp_to_next: int = int(config.get_value("profile", "xp_to_next", 100))
+	var raw_total_score: int = int(config.get_value("profile", "total_score", 0))
+	var raw_plays: int = int(config.get_value("profile", "plays", 0))
+	var raw_perfects: int = int(config.get_value("profile", "perfects", 0))
+	var raw_goods: int = int(config.get_value("profile", "goods", 0))
+	var raw_misses: int = int(config.get_value("profile", "misses", 0))
+	var raw_max_combo: int = int(config.get_value("profile", "max_combo_ever", 0))
+
+	# Clamp to non-negative.
+	raw_level = maxi(1, raw_level)
+	raw_xp = maxi(0, raw_xp)
+	raw_xp_to_next = maxi(1, raw_xp_to_next)
+	raw_total_score = maxi(0, raw_total_score)
+	raw_plays = maxi(0, raw_plays)
+	raw_perfects = maxi(0, raw_perfects)
+	raw_goods = maxi(0, raw_goods)
+	raw_misses = maxi(0, raw_misses)
+	raw_max_combo = maxi(0, raw_max_combo)
+
+	var high_scores: Dictionary = {}
+	var raw_scores: Variant = config.get_value("scores", "high_scores", {})
+	if typeof(raw_scores) == TYPE_DICTIONARY:
+		for key: Variant in raw_scores.keys():
+			var song_id: String = str(key)
+			var score: int = maxi(0, int(raw_scores[key]))
+			high_scores[song_id] = score
+
+	var song_unlocks: Dictionary = {}
+	var raw_unlocks: Variant = config.get_value("progression", "song_unlocks", {})
+	if typeof(raw_unlocks) == TYPE_DICTIONARY:
+		for key: Variant in raw_unlocks.keys():
+			var song_id: String = str(key)
+			song_unlocks[song_id] = bool(raw_unlocks[key])
+
+	var achievements: Dictionary = {}
+	var raw_ach: Variant = config.get_value("achievements", "achievements", {})
+	if typeof(raw_ach) == TYPE_DICTIONARY:
+		for key: Variant in raw_ach.keys():
+			var ach_id: String = str(key)
+			var entry: Dictionary = _default_achievement_entry()
+			var raw_entry: Variant = raw_ach[key]
+			if typeof(raw_entry) == TYPE_DICTIONARY:
+				entry["unlocked"] = bool(raw_entry.get("unlocked", false))
+				entry["progress"] = maxi(0, int(raw_entry.get("progress", 0)))
+			achievements[ach_id] = entry
+
+	var daily: Dictionary = {
+		"last_reward_date": str(config.get_value("daily", "last_reward_date", "")),
+		"streak": maxi(0, int(config.get_value("daily", "streak", 0))),
+	}
+
+	_profile = {
+		"level": raw_level,
+		"xp": raw_xp,
+		"xp_to_next": raw_xp_to_next,
+		"total_score": raw_total_score,
+		"plays": raw_plays,
+		"perfects": raw_perfects,
+		"goods": raw_goods,
+		"misses": raw_misses,
+		"max_combo_ever": raw_max_combo,
+		"high_scores": high_scores,
+		"song_unlocks": song_unlocks,
+		"achievements": achievements,
+		"daily": daily,
+	}
+	_dirty = false
+	emit_signal("profile_loaded", _profile.duplicate())
+	return _profile.duplicate()
 
 
-# ── Defaults schema (single source of truth for shape + types) ────────────
-func _defaults() -> Dictionary:
+func save_profile() -> bool:
+	if not _dirty:
+		return true
+	var config := ConfigFile.new()
+
+	config.set_value("profile", "level", _profile.get("level", 1))
+	config.set_value("profile", "xp", _profile.get("xp", 0))
+	config.set_value("profile", "xp_to_next", _profile.get("xp_to_next", 100))
+	config.set_value("profile", "total_score", _profile.get("total_score", 0))
+	config.set_value("profile", "plays", _profile.get("plays", 0))
+	config.set_value("profile", "perfects", _profile.get("perfects", 0))
+	config.set_value("profile", "goods", _profile.get("goods", 0))
+	config.set_value("profile", "misses", _profile.get("misses", 0))
+	config.set_value("profile", "max_combo_ever", _profile.get("max_combo_ever", 0))
+
+	var scores_section: Dictionary = {}
+	for key: Variant in _profile.get("high_scores", {}).keys():
+		scores_section[str(key)] = int(_profile.get("high_scores", {}).get(key, 0))
+	config.set_value("scores", "high_scores", scores_section)
+
+	var unlocks_section: Dictionary = {}
+	for key: Variant in _profile.get("song_unlocks", {}).keys():
+		unlocks_section[str(key)] = bool(_profile.get("song_unlocks", {}).get(key, false))
+	config.set_value("progression", "song_unlocks", unlocks_section)
+
+	var ach_section: Dictionary = {}
+	for key: Variant in _profile.get("achievements", {}).keys():
+		var entry: Dictionary = _profile.get("achievements", {}).get(key, {})
+		ach_section[str(key)] = {
+			"unlocked": bool(entry.get("unlocked", false)),
+			"progress": maxi(0, int(entry.get("progress", 0))),
+		}
+	config.set_value("achievements", "achievements", ach_section)
+
+	config.set_value("daily", "last_reward_date", str(_profile.get("daily", {}).get("last_reward_date", "")))
+	config.set_value("daily", "streak", maxi(0, int(_profile.get("daily", {}).get("streak", 0))))
+
+	var err: Error = config.save(PROFILE_PATH)
+	if err == OK:
+		_dirty = false
+		emit_signal("profile_saved")
+		return true
+	printerr("[PlayerProfile] Failed to save profile to ", PROFILE_PATH)
+	return false
+
+
+func get_profile() -> Dictionary:
+	return _profile.duplicate()
+
+
+func get_level() -> int:
+	return int(_profile.get("level", 1))
+
+
+func get_xp() -> int:
+	return int(_profile.get("xp", 0))
+
+
+func get_xp_to_next() -> int:
+	return int(_profile.get("xp_to_next", 100))
+
+
+func get_high_score(song_id: String) -> int:
+	return maxi(0, int(_profile.get("high_scores", {}).get(song_id, 0)))
+
+
+func is_song_unlocked(song_id: String) -> bool:
+	return bool(_profile.get("song_unlocks", {}).get(song_id, false))
+
+
+func get_song_unlocks() -> Dictionary:
+	return _profile.get("song_unlocks", {}).duplicate()
+
+
+func update_high_score(song_id: String, score: int) -> bool:
+	if song_id == "":
+		return false
+	score = maxi(0, score)
+	var current: int = get_high_score(song_id)
+	if score <= current:
+		return false
+	_profile.get("high_scores", {})[song_id] = score
+	_profile["total_score"] = maxi(0, int(_profile.get("total_score", 0)) + score)
+	_dirty = true
+	emit_signal("high_score_updated", song_id, score)
+	return true
+
+
+func unlock_song(song_id: String) -> bool:
+	if song_id == "":
+		return false
+	if is_song_unlocked(song_id):
+		return false
+	_profile.get("song_unlocks", {})[song_id] = true
+	_dirty = true
+	emit_signal("song_unlocked", song_id)
+	return true
+
+
+func record_play(result: Dictionary) -> void:
+	"""Merge a completed play result into the profile."""
+	var score: int = maxi(0, int(result.get("score", 0)))
+	var combo: int = maxi(0, int(result.get("max_combo", 0)))
+	var perfects: int = maxi(0, int(result.get("perfects", 0)))
+	var goods: int = maxi(0, int(result.get("goods", 0)))
+	var misses: int = maxi(0, int(result.get("misses", 0)))
+
+	_profile["plays"] = maxi(0, int(_profile.get("plays", 0))) + 1
+	_profile["total_score"] = maxi(0, int(_profile.get("total_score", 0))) + score
+	_profile["perfects"] = maxi(0, int(_profile.get("perfects", 0))) + perfects
+	_profile["goods"] = maxi(0, int(_profile.get("goods", 0))) + goods
+	_profile["misses"] = maxi(0, int(_profile.get("misses", 0))) + misses
+	_profile["max_combo_ever"] = maxi(int(_profile.get("max_combo_ever", 0)), combo)
+
+	_dirty = true
+
+
+func add_xp(amount: int) -> void:
+	amount = maxi(0, int(amount))
+	if amount <= 0:
+		return
+	_profile["xp"] = maxi(0, int(_profile.get("xp", 0))) + amount
+	var level: int = int(_profile.get("level", 1))
+	var xp_to_next: int = int(_profile.get("xp_to_next", 100))
+	while int(_profile.get("xp", 0)) >= xp_to_next:
+		_profile["xp"] = int(_profile.get("xp", 0)) - xp_to_next
+		level += 1
+		xp_to_next = _xp_for_level(level)
+		_profile["level"] = level
+		_profile["xp_to_next"] = xp_to_next
+		emit_signal("level_up", level)
+	_dirty = true
+
+
+func reset_profile() -> void:
+	_profile = _default_profile()
+	_dirty = true
+	save_profile()
+
+
+func flush() -> bool:
+	return save_profile()
+
+
+func _default_profile() -> Dictionary:
 	return {
 		"level": 1,
 		"xp": 0,
-		"xp_to_next_level": 100,
+		"xp_to_next": 100,
+		"total_score": 0,
+		"plays": 0,
+		"perfects": 0,
+		"goods": 0,
+		"misses": 0,
+		"max_combo_ever": 0,
 		"high_scores": {},
-		"personal_bests": {},
-		"statistics": {
-			"games_played": 0,
-			"total_score": 0,
-			"total_perfect": 0,
-			"total_good": 0,
-			"total_ok": 0,
-			"total_miss": 0,
-			"total_notes": 0,
-			"max_combo_ever": 0,
-			"total_xp_earned": 0,
+		"song_unlocks": {},
+		"achievements": {},
+		"daily": {
+			"last_reward_date": "",
+			"streak": 0,
 		},
 	}
 
 
-# ── Lifecycle ─────────────────────────────────────────────────────────────
-func load() -> bool:
-	var data := _ensure_save().load_json(SAVE_PATH, _defaults())
-
-	level = _clamp_level(data.get("level", 1))
-	xp = maxi(0, _as_int(data.get("xp", 0)))
-	xp_to_next_level = maxi(1, _as_int(data.get("xp_to_next_level", 100)))
-	high_scores = _validate_high_scores(data.get("high_scores", {}))
-	personal_bests = _validate_personal_bests(data.get("personal_bests", {}))
-	statistics = _validate_statistics(data.get("statistics", _defaults()["statistics"]))
-	return true
-
-func save() -> bool:
-	var data: Dictionary = {
-		"level": level,
-		"xp": xp,
-		"xp_to_next_level": xp_to_next_level,
-		"high_scores": high_scores,
-		"personal_bests": personal_bests,
-		"statistics": statistics,
+func _default_achievement_entry() -> Dictionary:
+	return {
+		"unlocked": false,
+		"progress": 0,
 	}
-	return _ensure_save().save_json(SAVE_PATH, data)
-
-func reset(keep_unlocked: bool = false) -> void:
-	level = 1
-	xp = 0
-	xp_to_next_level = 100
-	high_scores = {}
-	personal_bests = {}
-	statistics = _defaults()["statistics"].duplicate()
 
 
-# ── Query API ─────────────────────────────────────────────────────────────
-func get_level() -> int:
-	return level
-
-func get_xp() -> int:
-	return xp
-
-func get_xp_to_next_level() -> int:
-	return xp_to_next_level
-
-func get_high_score(song_id: String) -> int:
-	return maxi(0, _as_int(high_scores.get(song_id, 0)))
-
-func get_personal_best(song_id: String) -> Dictionary:
-	var pb := personal_bests.get(song_id, {})
-	return pb if typeof(pb) == TYPE_DICTIONARY else {}
-
-func get_statistics() -> Dictionary:
-	return statistics.duplicate()
-
-func get_high_scores() -> Dictionary:
-	var out: Dictionary = {}
-	for k in high_scores.keys():
-		out[String(k)] = maxi(0, _as_int(high_scores[k]))
-	return out
-
-func is_level_capped() -> bool:
-	return level >= MAX_LEVEL
-
-
-# ── Mutation API ──────────────────────────────────────────────────────────
-
-# Add XP and level up while XP suffices. Returns a level-up summary dict.
-func add_xp(amount: int) -> Dictionary:
-	amount = maxi(0, _as_int(amount))
-	var result: Dictionary = {
-		"level_up": false,
-		"new_level": level,
-		"xp_gained": amount,
-	}
-	xp += amount
-	statistics["total_xp_earned"] = _as_int(statistics.get("total_xp_earned", 0)) + amount
-
-	while xp >= xp_to_next_level and level < MAX_LEVEL:
-		xp -= xp_to_next_level
-		level += 1
-		xp_to_next_level = _xp_for_level(level)
-		result["level_up"] = true
-		result["new_level"] = level
-	return result
-
-# Record a high score for a song. Returns true if a new best was set.
-func record_high_score(song_id: Variant, score: Variant) -> bool:
-	song_id = _validate_song_id(song_id)
-	if song_id == "":
-		return false
-	score = maxi(0, _as_int(score))
-	var current: int = maxi(0, _as_int(high_scores.get(song_id, 0)))
-	if score > current:
-		high_scores[song_id] = score
-		return true
-	return false
-
-# Record a personal best result dict for a song. Returns true if a new best.
-func record_personal_best(song_id: Variant, result: Dictionary) -> bool:
-	song_id = _validate_song_id(song_id)
-	if song_id == "" or typeof(result) != TYPE_DICTIONARY:
-		return false
-	var pb: Dictionary = {
-		"score": maxi(0, _as_int(result.get("score", 0))),
-		"max_combo": maxi(0, _as_int(result.get("max_combo", 0))),
-		"accuracy": clampf(_as_float(result.get("accuracy", 0.0)), 0.0, 100.0),
-		"grade": String(result.get("grade", "F")).substr(0, 8),
-		"played_at": Time.get_datetime_string_from_system(),
-	}
-	var existing := personal_bests.get(song_id, {})
-	if typeof(existing) != TYPE_DICTIONARY or existing == {}:
-		personal_bests[song_id] = pb
-		return true
-	if pb["score"] > maxi(0, _as_int(existing.get("score", 0))):
-		personal_bests[song_id] = pb
-		return true
-	return false
-
-# Fold a completed gameplay result into profile: stats, high score, personal
-# best, and XP. song_id may be empty (falls back to "unknown").
-func record_gameplay_result(result: Dictionary) -> void:
-	if typeof(result) != TYPE_DICTIONARY:
-		return
-
-	var score: int = maxi(0, _as_int(result.get("score", 0)))
-	var max_combo: int = maxi(0, _as_int(result.get("max_combo", 0)))
-	var accuracy: float = clampf(_as_float(result.get("accuracy", 0.0)), 0.0, 100.0)
-	var grade: String = String(result.get("grade", "F")).substr(0, 8)
-	var song_id := _validate_song_id(result.get("song_id", ""))
-	if song_id == "":
-		song_id = "unknown"
-	var perfect: int = maxi(0, _as_int(result.get("perfect", 0)))
-	var good: int = maxi(0, _as_int(result.get("good", 0)))
-	var ok: int = maxi(0, _as_int(result.get("ok", 0)))
-	var miss: int = maxi(0, _as_int(result.get("miss", 0)))
-	var total_notes: int = maxi(0, _as_int(result.get("total_notes", 0)))
-
-	# Aggregate statistics
-	statistics["games_played"] = _as_int(statistics.get("games_played", 0)) + 1
-	statistics["total_score"] = _as_int(statistics.get("total_score", 0)) + score
-	statistics["total_perfect"] = _as_int(statistics.get("total_perfect", 0)) + perfect
-	statistics["total_good"] = _as_int(statistics.get("total_good", 0)) + good
-	statistics["total_ok"] = _as_int(statistics.get("total_ok", 0)) + ok
-	statistics["total_miss"] = _as_int(statistics.get("total_miss", 0)) + miss
-	statistics["total_notes"] = _as_int(statistics.get("total_notes", 0)) + total_notes
-	statistics["max_combo_ever"] = maxi(_as_int(statistics.get("max_combo_ever", 0)), max_combo)
-
-	# High score / personal best
-	record_high_score(song_id, score)
-	record_personal_best(song_id, {
-		"score": score,
-		"max_combo": max_combo,
-		"accuracy": accuracy,
-		"grade": grade,
-	})
-
-	# XP: 1 XP per 10 points scored
-	var xp_gained: int = score // 10
-	add_xp(xp_gained)
-
-
-# ── Helpers ───────────────────────────────────────────────────────────────
-
-func _validate_song_id(song_id: Variant) -> String:
-	if typeof(song_id) != TYPE_STRING:
-		return ""
-	var s := String(song_id)
-	if s.length() == 0 or s.length() > 64:
-		return ""
-	var valid: bool = true
-	for c in s:
-		var lc := c.to_lower()
-		if not (c >= "0" and c <= "9" or lc >= "a" and lc <= "z" or c == "_" or c == "-"):
-			valid = false
-			break
-	return s if valid else ""
-
-func _clamp_level(value: Variant) -> int:
-	var l := _as_int(value)
-	return clampi(l, 1, MAX_LEVEL)
-
-func _xp_for_level(l: int) -> int:
-	return 100 + (l - 1) * 50
-
-func _validate_high_scores(data: Variant) -> Dictionary:
-	var out: Dictionary = {}
-	if typeof(data) != TYPE_DICTIONARY:
-		return out
-	for k in data.keys():
-		var sid := _validate_song_id(k)
-		if sid != "":
-			out[sid] = maxi(0, _as_int(data[k]))
-	return out
-
-func _validate_personal_bests(data: Variant) -> Dictionary:
-	var out: Dictionary = {}
-	if typeof(data) != TYPE_DICTIONARY:
-		return out
-	for k in data.keys():
-		var sid := _validate_song_id(k)
-		if sid == "":
-			continue
-		var v := data[k]
-		if typeof(v) != TYPE_DICTIONARY:
-			continue
-		out[sid] = {
-			"score": maxi(0, _as_int(v.get("score", 0))),
-			"max_combo": maxi(0, _as_int(v.get("max_combo", 0))),
-			"accuracy": clampf(_as_float(v.get("accuracy", 0.0)), 0.0, 100.0),
-			"grade": String(v.get("grade", "F")).substr(0, 8),
-		}
-	return out
-
-func _validate_statistics(data: Variant) -> Dictionary:
-	var defaults := _defaults()["statistics"]
-	var out: Dictionary = defaults.duplicate()
-	if typeof(data) != TYPE_DICTIONARY:
-		return out
-	for k in defaults.keys():
-		if data.has(k):
-			out[k] = maxi(0, _as_int(data[k]))
-	return out
-
-func _as_int(value: Variant) -> int:
-	if typeof(value) == TYPE_INT:
-		return value
-	if typeof(value) == TYPE_FLOAT:
-		return int(value)
-	return 0
-
-func _as_float(value: Variant) -> float:
-	if typeof(value) == TYPE_FLOAT:
-		return value
-	if typeof(value) == TYPE_INT:
-		return float(value)
-	return 0.0
+func _xp_for_level(level: int) -> int:
+	return maxi(1, 100 + (level - 1) * 50)
