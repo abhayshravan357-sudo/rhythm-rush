@@ -18,6 +18,43 @@ var audio_player_node: AudioStreamPlayer = null
 var active_playback_flag: bool = false
 
 
+func get_playback_position_seconds() -> float:
+	"""Authoritative adjusted playback position (seconds) used for hit judgment.
+
+	Decoupled from frame-delta accumulation; derived from the hardware audio
+	clock each process tick.
+	"""
+	return adjusted_system_time
+
+
+func get_raw_audio_time() -> float:
+	"""Raw hardware audio clock position (playback head + mix lag), pre-offset."""
+	return current_audio_time
+
+
+func is_playing() -> bool:
+	return active_playback_flag and audio_player_node != null and audio_player_node.playing
+
+
+func get_offset() -> float:
+	return local_hardware_offset
+
+
+func set_offset(seconds: float) -> void:
+	local_hardware_offset = float(seconds)
+	var config := ConfigFile.new()
+	if config.load("user://settings.cfg") != OK:
+		config.set_value("audio", "user_offset", local_hardware_offset)
+		config.save("user://settings.cfg")
+	else:
+		config.set_value("audio", "user_offset", local_hardware_offset)
+		config.save("user://settings.cfg")
+
+
+func get_approach_time() -> float:
+	return APPROACH_TIME
+
+
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	load_calibration_data()

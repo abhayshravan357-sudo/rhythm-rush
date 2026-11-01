@@ -1,22 +1,33 @@
 # LaneManager.gd
 # Node2D — viewport partitioning and multi-touch lane resolution.
+#
+# MVP uses 4 lanes; the column math is lane_count-driven so the foundation
+# retains headroom for 6 lanes without code changes.
 extends Node2D
 
 signal column_touch_down(lane_index: int)
 signal column_touch_up(lane_index: int)
 
+# MVP lane count. Configurable; foundation supports up to 6.
+var lane_count: int = GameConfig.DEFAULT_LANE_COUNT
+
 var screen_width: float = 1920.0
 var screen_height: float = 1080.0
-var lane_count: int = GameConfig.DEFAULT_LANE_COUNT
 var column_width_step: float = 480.0   # default 1920 / 4
 var fixed_judgment_y: float = 918.0   # 85 % of 1080
+
+# Gated by the gameplay state machine (countdown/playing/pause/results).
+# Owned by Agent 01; LaneManager only exposes the control point.
+var input_enabled: bool = false
 
 
 func _ready() -> void:
 	lane_count = GameConfig.normalize_lane_count(lane_count)
 	_evaluate_viewport_metrics()
 	get_tree().root.size_changed.connect(_evaluate_viewport_metrics)
-	column_touch_down.connect(_on_column_touch_down)
+	# Route every registered touch to hit registration (ScoreManager).
+	# ScoreManager is an Agent 05-owned autoload; we call it, never modify it.
+	column_touch_down.connect(Callable(ScoreManager, "process_action_input"))
 
 
 func _evaluate_viewport_metrics() -> void:
@@ -25,10 +36,19 @@ func _evaluate_viewport_metrics() -> void:
 	screen_height = vp.y
 	lane_count = GameConfig.normalize_lane_count(lane_count)
 	column_width_step = screen_width / float(lane_count)
+	# Judgment line sits at 85 % of screen height.
 	fixed_judgment_y = screen_height * 0.85
 
 
 # ── Public API used by NoteSpawner and ScoreManager ───────────────────────────
+
+func set_input_enabled(enabled: bool) -> void:
+	input_enabled = enabled
+
+
+func is_input_enabled() -> bool:
+	return input_enabled
+
 
 func get_lane_count() -> int:
 	return GameConfig.normalize_lane_count(lane_count)
@@ -63,6 +83,8 @@ func get_total_drop_distance() -> float:
 # ── Input handling ─────────────────────────────────────────────────────────────
 
 func _input(event: InputEvent) -> void:
+	if not input_enabled:
+		return
 	if event is InputEventScreenTouch:
 		var lane: int = get_lane_index_for_x(event.position.x)
 		if lane < 0:
