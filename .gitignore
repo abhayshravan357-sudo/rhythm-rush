@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+.python-version
+
+# Godot / engine generated files
+.godot/
+.import/
+*.translation
+*.log
+*.tmp
+*.import
+export_presets.cfg
+android/build/
+android/.gradle/
+android/local.properties
+android/keystore*
+
+# User-generated data
+user://
+*.save
+*.cfg
+
+# Build outputs
+build/
+dist/
+out/
+*.apk
+*.aab
+
+# Secrets and local config
+.env
+.env.*
+*.pem
+*.key
+*.crt

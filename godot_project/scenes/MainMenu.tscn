@@ -1,6 +1,28 @@
 [gd_scene load_steps=2 format=3 uid="uid://main_menu"]
 
 [ext_resource type="Script" path="res://scripts/MenuNetworkSyncReceiver.gd" id="1_recv"]
+[ext_resource type="Script" path="res://scripts/ui/MainMenuUI.gd" id="2_menu_ui"]
+
+[sub_resource type="StyleBoxFlat" id="btn_normal"]
+bg_color = Color(0.10, 0.14, 0.22, 1)
+border_width = Vector2(1, 1)
+border_color = Color(0.25, 0.45, 0.75, 1)
+border_blur = 2
+corner_radius = Vector2(10, 10)
+
+[sub_resource type="StyleBoxFlat" id="btn_hover"]
+bg_color = Color(0.18, 0.28, 0.45, 1)
+border_width = Vector2(1, 1)
+border_color = Color(0.40, 0.70, 1.00, 1)
+border_blur = 2
+corner_radius = Vector2(10, 10)
+
+[sub_resource type="StyleBoxFlat" id="btn_pressed"]
+bg_color = Color(0.30, 0.20, 0.50, 1)
+border_width = Vector2(1, 1)
+border_color = Color(0.70, 0.40, 1.00, 1)
+border_blur = 2
+corner_radius = Vector2(10, 10)
 
 [node name="MainMenu" type="Control"]
 anchor_right = 1.0
@@ -12,22 +34,78 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.04, 0.04, 0.08, 1)
 
+[node name="MenuUI" type="Node" parent="."]
+script = ExtResource("2_menu_ui")
+
 [node name="VBox" type="VBoxContainer" parent="."]
 anchor_left = 0.5
 anchor_right = 0.5
-anchor_top = 0.1
-anchor_bottom = 0.9
-offset_left = -400.0
-offset_right = 400.0
+anchor_top = 0.12
+anchor_bottom = 0.88
+offset_left = -360.0
+offset_right = 360.0
 alignment = 1
 
 [node name="TitleLabel" type="Label" parent="VBox"]
 text = "HEXA-RHYTHM"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 72
+theme_override_colors/font_color = Color(0.20, 0.75, 1.00, 1)
 
 [node name="Spacer1" type="Control" parent="VBox"]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 30)
+
+[node name="PlayButton" type="Button" parent="VBox"]
+name = "PlayButton"
+custom_minimum_size = Vector2(0, 70)
+text = "Play"
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_style_boxes/normal = SubResource("btn_normal")
+theme_override_style_boxes/hover = SubResource("btn_hover")
+theme_override_style_boxes/pressed = SubResource("btn_pressed")
+
+[node name="SongLibraryButton" type="Button" parent="VBox"]
+name = "SongLibraryButton"
+custom_minimum_size = Vector2(0, 70)
+text = "Song Library"
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_style_boxes/normal = SubResource("btn_normal")
+theme_override_style_boxes/hover = SubResource("btn_hover")
+theme_override_style_boxes/pressed = SubResource("btn_pressed")
+
+[node name="CalibrateButton" type="Button" parent="VBox"]
+name = "CalibrateButton"
+custom_minimum_size = Vector2(0, 70)
+text = "Calibrate"
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_style_boxes/normal = SubResource("btn_normal")
+theme_override_style_boxes/hover = SubResource("btn_hover")
+theme_override_style_boxes/pressed = SubResource("btn_pressed")
+
+[node name="SettingsButton" type="Button" parent="VBox"]
+name = "SettingsButton"
+custom_minimum_size = Vector2(0, 70)
+text = "Settings"
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_style_boxes/normal = SubResource("btn_normal")
+theme_override_style_boxes/hover = SubResource("btn_hover")
+theme_override_style_boxes/pressed = SubResource("btn_pressed")
+
+[node name="Spacer2" type="Control" parent="VBox"]
+custom_minimum_size = Vector2(0, 30)
+
+[node name="SeparatorLabel" type="Label" parent="VBox"]
+text = "NETWORK CATALOG"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.50, 0.60, 0.80, 1)
+
+[node name="Spacer3" type="Control" parent="VBox"]
+custom_minimum_size = Vector2(0, 10)
 
 [node name="ServerIPLabel" type="Label" parent="VBox"]
 text = "Server IP Address"
@@ -47,9 +125,10 @@ name = "SyncButton"
 custom_minimum_size = Vector2(0, 70)
 text = "Sync Song Catalog"
 theme_override_font_sizes/font_size = 28
-
-[node name="Spacer2" type="Control" parent="VBox"]
-custom_minimum_size = Vector2(0, 20)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_style_boxes/normal = SubResource("btn_normal")
+theme_override_style_boxes/hover = SubResource("btn_hover")
+theme_override_style_boxes/pressed = SubResource("btn_pressed")
 
 [node name="SongListLabel" type="Label" parent="VBox"]
 text = "Song Catalog"
@@ -60,24 +139,6 @@ theme_override_font_sizes/font_size = 24
 name = "SongList"
 custom_minimum_size = Vector2(0, 300)
 theme_override_font_sizes/font_size = 22
-
-[node name="Spacer3" type="Control" parent="VBox"]
-custom_minimum_size = Vector2(0, 20)
-
-[node name="HBox" type="HBoxContainer" parent="VBox"]
-alignment = 1
-
-[node name="PlayButton" type="Button" parent="VBox/HBox"]
-name = "PlayButton"
-custom_minimum_size = Vector2(250, 70)
-text = "Play"
-theme_override_font_sizes/font_size = 28
-
-[node name="CalibrateButton" type="Button" parent="VBox/HBox"]
-name = "CalibrateButton"
-custom_minimum_size = Vector2(250, 70)
-text = "Calibrate"
-theme_override_font_sizes/font_size = 28
 
 [node name="StatusLabel" type="Label" parent="VBox"]
 name = "StatusLabel"

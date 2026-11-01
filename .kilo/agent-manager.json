@@ -1,17 +1,117 @@
 {
-  "worktrees": {},
+  "worktrees": {
+    "wt-1793461034761-1": {
+      "branch": "agent/project-rhythm-architecture-2",
+      "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-architecture-2-0caa8a41ee27ecce",
+      "parentBranch": "main",
+      "createdAt": "2026-10-31T15:37:14.761Z",
+      "remote": "origin",
+      "label": "agent 01 architecture",
+      "branchOwned": true
+    },
+    "wt-1793461035555-2": {
+      "branch": "agent/project-rhythm-gameplay-2",
+      "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-gameplay-2-8c945a51f35af626",
+      "parentBranch": "main",
+      "createdAt": "2026-10-31T15:37:15.555Z",
+      "remote": "origin",
+      "label": "agent 02 gameplay",
+      "branchOwned": true
+    },
+    "wt-1793461036152-3": {
+      "branch": "agent/project-rhythm-audio-2",
+      "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-audio-2-37415d8b4134d847",
+      "parentBranch": "main",
+      "createdAt": "2026-10-31T15:37:16.152Z",
+      "remote": "origin",
+      "label": "agent 03 audio",
+      "branchOwned": true
+    },
+    "wt-1793461037546-4": {
+      "branch": "agent/project-rhythm-ui-2",
+      "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-ui-2-1697a689b76ebae4",
+      "parentBranch": "main",
+      "createdAt": "2026-10-31T15:37:17.546Z",
+      "remote": "origin",
+      "label": "agent 04 ui",
+      "branchOwned": true
+    },
+    "wt-1793461038832-5": {
+      "branch": "agent/project-rhythm-systems-2",
+      "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-systems-2-b18951fb28acfb45",
+      "parentBranch": "main",
+      "createdAt": "2026-10-31T15:37:18.832Z",
+      "remote": "origin",
+      "label": "agent 05 systems",
+      "branchOwned": true
+    },
+    "wt-1793461040677-6": {
+      "branch": "agent/project-rhythm-qa-2",
+      "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-qa-2-07393b6d766b11cd",
+      "parentBranch": "main",
+      "createdAt": "2026-10-31T15:37:20.677Z",
+      "remote": "origin",
+      "label": "agent 06 qa",
+      "branchOwned": true
+    },
+    "wt-1793461041439-7": {
+      "branch": "agent/project-rhythm-android-2",
+      "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-android-2-62636c98feda9f1a",
+      "parentBranch": "main",
+      "createdAt": "2026-10-31T15:37:21.439Z",
+      "remote": "origin",
+      "label": "agent 07 android",
+      "branchOwned": true
+    }
+  },
   "sessions": {
     "ses_e6e1ade1cffeZS9qGcHXjMPudi": {
       "worktreeId": null,
       "createdAt": "2026-10-31T12:17:55.264Z"
+    },
+    "ses_e6d646018ffetwmIjUNdH6UYR7": {
+      "worktreeId": "wt-1793461034761-1",
+      "createdAt": "2026-10-31T15:37:14.994Z"
+    },
+    "ses_e6d645d22ffeKgcxnJW1YT67z3": {
+      "worktreeId": "wt-1793461035555-2",
+      "createdAt": "2026-10-31T15:37:15.747Z"
+    },
+    "ses_e6d6457e7ffey8AtJZGvOWaex5": {
+      "worktreeId": "wt-1793461036152-3",
+      "createdAt": "2026-10-31T15:37:17.091Z"
+    },
+    "ses_e6d645323ffeapwJ6Sx86l4BBd": {
+      "worktreeId": "wt-1793461037546-4",
+      "createdAt": "2026-10-31T15:37:18.317Z"
+    },
+    "ses_e6d644e1affeW0e5RwizQbSUjK": {
+      "worktreeId": "wt-1793461038832-5",
+      "createdAt": "2026-10-31T15:37:19.623Z"
+    },
+    "ses_e6d644904ffe56bBNkLrCryuny": {
+      "worktreeId": "wt-1793461040677-6",
+      "createdAt": "2026-10-31T15:37:20.897Z"
+    },
+    "ses_e6d644516ffe2A9Qi6ECmIjHOS": {
+      "worktreeId": "wt-1793461041439-7",
+      "createdAt": "2026-10-31T15:37:21.903Z"
     }
   },
   "tabOrder": {
     "local": [
-      "pending:573f3b9e-05e8-4e50-bbbd-1a1f8f5a909c",
-      "ses_e6e1ade1cffeZS9qGcHXjMPudi"
+      "pending:f29d8df3-b366-4b11-9442-ea7f15931455"
     ]
   },
+  "worktreeOrder": [
+    "wt-1793461034761-1",
+    "wt-1793461035555-2",
+    "wt-1793461036152-3",
+    "wt-1793461037546-4",
+    "wt-1793461038832-5",
+    "wt-1793461040677-6",
+    "wt-1793461041439-7"
+  ],
   "sessionsCollapsed": true,
   "activeTarget": {
     "projectId": "prj-664a5f8aad87",
