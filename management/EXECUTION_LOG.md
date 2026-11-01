@@ -17,18 +17,18 @@
 | 2026-11-01T22:45:XXZ | Agent 00 (Chief) | **TASK REGISTER DETAILED** | Expanded management/TASK_REGISTER.md with full task specifications for T-MVP-02a through T-MVP-02h including objective, background, files, dependencies, deliverables, acceptance criteria, required tests, definition of done, priority, deadline. |
 | 2026-11-01T22:50:XXZ | Agent 00 (Chief) | **INTEGRATION PLAN ESTABLISHED** | Defined integration order: 1) GameController+GameStateManager (T-MVP-02a), 2) PlayerProfile+SaveManager+SongUnlockManager (T-MVP-02e), 3) GameScene.gd completion (T-MVP-02d), 4) LaneManager/NoteSpawner/AudioSync verification (T-MVP-02b, T-MVP-02c), 5) Gameplay unit tests (T-MVP-02f), 6) Regression testing, 7) MVP-02 Gate review. |
 | 2026-11-01T22:55:XXZ | Agent 00 (Chief) | **NEXT ACTION: Integrate GameController + GameStateManager** | Preparing to merge architecture worktree changes to main. This unblocks T-MVP-02b, T-MVP-02c, T-MVP-02d, T-MVP-02e, T-MVP-02f. |
+| 2026-11-01T19:44:XXZ | Agent 00 (Chief) | **MVP-02.1 AUTHORIZED** | Project owner conditionally accepted MVP-02 implementation at commit 2cbf5e6. MVP-02.1 (Gameplay Integration & Verification) authorized to close verification gaps: scene integration, HUD wiring, gameplay tests, timing review. PlayerProfile/SaveManager/SongUnlockManager deferred unless required for playable loop. |
 
 ## Pending Next Actions
 
-1. Integrate GameController.gd + GameStateManager.gd from architecture worktree to main
-2. Integrate PlayerProfile.gd + SaveManager.gd + SongUnlockManager.gd from systems worktree to main
-3. Agent 04: Complete GameScene.gd (HUD wiring, pause handling, judgment feedback, results transition)
-4. Agent 02: Verify LaneManager/NoteSpawner match gameplay worktree
-5. Agent 03: Verify AudioSync/ChartLoader match audio worktree
-6. Agent 06: Add gameplay unit tests (lane_manager, note_spawner, game_controller, gameplay_flow)
-7. Agent 00: Run regression tests after each integration
-8. Agent 00: Clean up duplicate -2 branches (with approval)
-9. User: Install Godot 4 + Android SDK (unblocks L4+ validation and Agent 07)
+1. **Agent 01**: Connect MainMenu Play button → GameController → GameScene integration
+2. **Agent 04**: Complete GameScene.gd (HUD wiring, pause handling, judgment feedback, results transition)
+3. **Agent 06**: Add gameplay unit tests (lane_manager, note_spawner, game_controller, gameplay_flow)
+4. **Agent 03**: Review AudioSync timing integration (pause/resume, calibration)
+5. **Agent 02**: Review LaneManager/NoteSpawner & expose testable interfaces
+6. **Agent 05**: Review PlayerProfile/SaveManager/SongUnlockManager (DEFER unless needed)
+7. **Agent 07**: Document Android blockers (separate from gameplay acceptance)
+8. **Agent 00**: Integrate approved work, run regression tests, produce consolidated MVP-02.1 report
 
 ## Blocker Log
 
@@ -38,9 +38,9 @@
 | B-02 | Android SDK not installed | Agent 07 / user | Manual install required before APK generation |
 | B-03 | librosa/demucs not installed | Agent 03 / user | `pip install librosa demucs` required for chart pipeline |
 | B-04 | No Android device/emulator | user | Required for T-23 device testing; provide device or emulator |
-| B-05 | GameController/GameStateManager not in main | Agent 00 + 01 | Integrate from architecture worktree (next action) |
-| B-06 | GameScene.gd incomplete | Agent 04 | Agent 04 to implement HUD wiring, pause, results |
-| B-07 | Gameplay unit tests missing | Agent 06 | Agent 06 to add per T-MVP-02f |
+| B-05 | GameController/GameStateManager in main but MainMenu not wired | Agent 01 | Connect MainMenu Play button to GameController |
+| B-06 | GameScene.gd incomplete (no HUD wiring) | Agent 04 | Implement HUD, pause, results transition |
+| B-07 | Gameplay unit tests missing | Agent 06 | Add per T-MVP-02.1c |
 | B-08 | Duplicate -2 branches/worktrees | Agent 00 | Archive or delete with approval |
 
 ## Integration Log (To Be Populated)
