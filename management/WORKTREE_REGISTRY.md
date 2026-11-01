@@ -30,10 +30,12 @@ For each agent:
 - Do not delete branches without approval.
 - Do not delete worktrees without approval.
 - Specialists do not merge independently; integration via Agent 00 only.
-- Preserve existing committed work on master.
+- Preserve existing committed work on main.
 - Never claim a worktree exists unless `git worktree list` confirms it.
 
 ## Current state
 
-- No agent worktrees provisioned yet (registry is planned state).
-- Repository has one branch: master (initial commit bfc2a4c).
+- All 8 agent branches provisioned from main (default integration branch).
+- All 8 agent worktrees provisioned as sibling directories (confirmed via `git worktree list`).
+- Repository default branch: main (commit d3ef29e).
+- Specialist sessions NOT yet started via Agent Manager (session IDs pending in AGENT_REGISTRY.md).

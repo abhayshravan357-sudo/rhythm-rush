@@ -13,10 +13,14 @@ config/icon="res://assets/textures/icon.svg"
 
 [autoload]
 
+GameConfig="*res://scripts/core/GameConfig.gd"
+GameStateManager="*res://scripts/core/GameStateManager.gd"
+GameController="*res://scripts/core/GameController.gd"
 ChartLoader="*res://scripts/ChartLoader.gd"
 AudioSync="*res://scripts/AudioSync.gd"
 ScoreManager="*res://scripts/ScoreManager.gd"
 OffsetCalibration="*res://scripts/OffsetCalibration.gd"
+PlayerProfile="*res://scripts/systems/PlayerProfile.gd"
 
 [display]
 

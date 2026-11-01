@@ -2,7 +2,7 @@
 
 Project: PROJECT RHYTHM
 Working directory: /home/abhaysawant/hexa-rhythm
-Integration branch: master (actual repository default)
+Integration branch: main (actual repository default)
 Designated model: nemotron 3.5 super vl (free) — all worktree agents
 Reference gameplay: Magic Tiles 3 (gameplay inspiration only — no copied assets/IP)
 Product goal: Original, offline-first Android rhythm game APK
@@ -25,13 +25,13 @@ Product goal: Original, offline-first Android rhythm game APK
 | Agent | Identity | Role | Branch | Worktree | Status | Current assignment |
 |-------|----------|------|--------|----------|--------|--------------------|
 | 00 | Project Rhythm Chief Engineer | Management / integration / releases | agent/project-rhythm-chief | project-rhythm-chief | assigned | Org setup, delegation, integration |
-| 01 | Game Architecture Engineer | Engine architecture, core systems, scenes | agent/project-rhythm-architecture | project-rhythm-architecture | assigned | Architecture & scene design |
-| 02 | Gameplay Engineer | Tiles, lanes, input, hit registration | agent/project-rhythm-gameplay | project-rhythm-gameplay | assigned | Core gameplay implementation |
-| 03 | Audio & Rhythm Engineer | Music sync, timing, charts, latency | agent/project-rhythm-audio | project-rhythm-audio | assigned | Audio timing architecture |
-| 04 | UI/UX Engineer | Menus, HUD, results, settings, animations | agent/project-rhythm-ui | project-rhythm-ui | assigned | UI screens & responsive layout |
-| 05 | Game Systems Engineer | Profiles, progression, unlocks, persistence | agent/project-rhythm-systems | project-rhythm-systems | assigned | Progression & local save |
-| 06 | QA & Performance Engineer | Testing, profiling, touch response | agent/project-rhythm-qa | project-rhythm-qa | assigned | Test strategy & verification |
-| 07 | Android & Release Engineer | SDK, APK, signing, versioning, release | agent/project-rhythm-android | project-rhythm-android | assigned | Android build & release prep |
+| 01 | Game Architecture Engineer | Engine architecture, core systems, scenes | agent/project-rhythm-architecture | project-rhythm-architecture | assigned | MVP-01: Game state machine, autoload verification |
+| 02 | Gameplay Engineer | Tiles, lanes, input, hit registration | agent/project-rhythm-gameplay | project-rhythm-gameplay | assigned | MVP-01: 4-lane lane management, touch input routing |
+| 03 | Audio & Rhythm Engineer | Music sync, timing, charts, latency | agent/project-rhythm-audio | project-rhythm-audio | assigned | MVP-01: AudioSync integration, latency calibration |
+| 04 | UI/UX Engineer | Menus, HUD, results, settings, animations | agent/project-rhythm-ui | project-rhythm-ui | assigned | MVP-01: Menu structure, scene transitions foundation |
+| 05 | Game Systems Engineer | Profiles, progression, unlocks, persistence | agent/project-rhythm-systems | project-rhythm-systems | assigned | MVP-01: ScoreManager API, local persistence structure |
+| 06 | QA & Performance Engineer | Testing, profiling, touch response | agent/project-rhythm-qa | project-rhythm-qa | assigned | MVP-01: Test framework setup, unit tests for scoring |
+| 07 | Android & Release Engineer | SDK, APK, signing, versioning, release | agent/project-rhythm-android | project-rhythm-android | assigned | MVP-01: Export preset configuration verification |
 
 ## Integration rules (mandatory)
 

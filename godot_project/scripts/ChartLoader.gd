@@ -43,16 +43,71 @@ func load_chart(file_path: String) -> Dictionary:
 		printerr("[ChartLoader] Missing required root keys: metaData or noteTimeline.")
 		return {}
 
-	# Enforce chronological order as a safety guarantee for the spawning loop
-	var timeline: Array = verified_dict["noteTimeline"]
-	timeline.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+	var normalized_chart: Dictionary = validate_chart_payload(verified_dict)
+	if normalized_chart.is_empty():
+		printerr("[ChartLoader] Chart failed validation and was rejected.")
+		return {}
+
+	current_chart = normalized_chart
+	is_chart_loaded = true
+	print("[ChartLoader] Loaded ", current_chart["noteTimeline"].size(), " notes from: ", file_path)
+	return current_chart
+
+
+func validate_chart_payload(chart_payload: Dictionary) -> Dictionary:
+	if typeof(chart_payload) != TYPE_DICTIONARY or chart_payload.is_empty():
+		return {}
+
+	var upstream_meta: Dictionary = chart_payload.get("metaData", {})
+	if typeof(upstream_meta) != TYPE_DICTIONARY:
+		return {}
+
+	var lane_count: int = int(upstream_meta.get("laneCount", GameConfig.DEFAULT_LANE_COUNT))
+	lane_count = GameConfig.normalize_lane_count(lane_count)
+	var timeline: Array = chart_payload.get("noteTimeline", [])
+	if typeof(timeline) != TYPE_ARRAY:
+		return {}
+
+	var normalized_timeline: Array = []
+	for i: Variant in timeline:
+		if typeof(i) != TYPE_DICTIONARY:
+			continue
+		var note: Dictionary = i
+		var timestamp: float = float(note.get("timestamp", -1.0))
+		var lane: int = int(note.get("lane", -1))
+		var note_type: String = String(note.get("type", "TAP")).to_upper()
+		if not is_finite(timestamp) or timestamp < 0.0:
+			continue
+		if lane < 0 or lane >= lane_count:
+			continue
+		if not (note_type == "TAP" or note_type == "HOLD" or note_type == "SIMULTANEOUS"):
+			continue
+		if note_type == "HOLD":
+			var duration: float = float(note.get("duration", 0.0))
+			if duration <= 0.0:
+				continue
+		var normalized_note: Dictionary = {
+			"timestamp": timestamp,
+			"lane": lane,
+			"type": note_type,
+			"source": note.get("source", "auto")
+		}
+		if note_type == "HOLD":
+			normalized_note["duration"] = float(note.get("duration", 0.0))
+		normalized_timeline.append(normalized_note)
+
+	normalized_timeline.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return a["timestamp"] < b["timestamp"]
 	)
 
-	current_chart = verified_dict
-	is_chart_loaded = true
-	print("[ChartLoader] Loaded ", timeline.size(), " notes from: ", file_path)
-	return current_chart
+	if normalized_timeline.is_empty():
+		return {}
+
+	var sanitized_chart: Dictionary = chart_payload.duplicate(true)
+	sanitized_chart["metaData"] = upstream_meta.duplicate(true)
+	sanitized_chart["metaData"]["laneCount"] = lane_count
+	sanitized_chart["noteTimeline"] = normalized_timeline
+	return sanitized_chart
 
 
 func get_notes_in_window(time_start: float, time_end: float) -> Array:
@@ -61,9 +116,9 @@ func get_notes_in_window(time_start: float, time_end: float) -> Array:
 	if not is_chart_loaded:
 		return notes_slice
 
-	var timeline: Array = current_chart["noteTimeline"]
+	var timeline: Array = current_chart.get("noteTimeline", [])
 	for item: Dictionary in timeline:
-		var note_time: float = item["timestamp"]
+		var note_time: float = float(item.get("timestamp", -1.0))
 		if note_time >= time_start and note_time <= time_end:
 			notes_slice.append(item)
 	return notes_slice
