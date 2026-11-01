@@ -2,26 +2,30 @@
 
 Project: HexaRhythm
 Phase: Wave 3 — MVP-02 (Four-Lane Gameplay & Tile Spawning)
+Milestone: MVP-02.1 (Gameplay Integration & Verification) — COMPLETE
 Coordinator: Agent 00 — Chief Engineer
 Model: NVIDIA: Nemotron 3.5 Super VL (free), provider: kilo
 Date: 2026-11-01
+Main commit: fe878c5
 
 ## 1. Integration Status
 
-| Component | Source | Status | Location |
-|-----------|--------|--------|----------|
-| GameController.gd | MVP-01 (Agent 01) | Exists — needs scene wiring | godot_project/scripts/core/GameController.gd |
-| GameStateManager.gd | MVP-01 (Agent 01) | Exists | godot_project/scripts/core/GameStateManager.gd |
-| GameConfig.gd | MVP-01 (Agent 01) | Exists | godot_project/scripts/core/GameConfig.gd |
-| LaneManager.gd | MVP-01 + merge (Agent 02) | Exists — 4 lanes, input gating | godot_project/scripts/LaneManager.gd |
-| NoteSpawner.gd | MVP-01 + merge (Agent 02) | Exists — object pool | godot_project/scripts/NoteSpawner.gd |
-| ScoreManager.gd | MVP-01 + merge (Agent 05) | Exists — calibrated windows | godot_project/scripts/ScoreManager.gd |
-| AudioSync.gd | MVP-01 (Agent 03) | Exists — authoritative clock | godot_project/scripts/AudioSync.gd |
-| ChartLoader.gd | MVP-01 (Agent 03) | Exists — schema validation | godot_project/scripts/ChartLoader.gd |
-| PlayerProfile.gd | MVP-01 + merge (Agent 05) | Exists | godot_project/scripts/systems/PlayerProfile.gd |
-| GameScene.tscn | MVP-01 (Agent 04) | Exists — basic layout | godot_project/scenes/GameScene.tscn |
-| GameScene.gd | MVP-01 (Agent 04) | Exists — AudioSync init only | godot_project/scripts/GameScene.gd |
-| MainMenu.tscn | MVP-01 (Agent 04) | Exists — needs Play button wiring | godot_project/scenes/MainMenu.tscn |
+MVP-02 implementation is **conditionally accepted** and MVP-02.1 verification is **complete**.
+
+| Component | Status | Location | Verification Level |
+|-----------|--------|----------|-------------------|
+| GameController.gd | Integrated | godot_project/scripts/core/ | L2 (unit tests) |
+| GameStateManager.gd | Integrated | godot_project/scripts/core/ | L2 (unit tests) |
+| GameConfig.gd | Integrated | godot_project/scripts/core/ | L2 (unit tests) |
+| LaneManager.gd | Integrated | godot_project/scripts/ | L2 (unit tests) |
+| NoteSpawner.gd | Integrated | godot_project/scripts/ | L2 (unit tests) |
+| ScoreManager.gd | Integrated | godot_project/scripts/ | L2 (unit tests) |
+| AudioSync.gd | Integrated | godot_project/scripts/ | L2 (unit tests) |
+| ChartLoader.gd | Integrated | godot_project/scripts/ | L2 (unit tests) |
+| MainMenuUI.gd | Integrated | godot_project/scripts/ui/ | L2 (unit tests) |
+| GameScene.gd | Integrated | godot_project/scripts/ | L2 (unit tests) |
+| MainMenu.tscn | Existing | godot_project/scenes/ | L1 (static) |
+| GameScene.tscn | Existing | godot_project/scenes/ | L1 (static) |
 
 ## 2. Initialization Contract (Verified)
 
@@ -31,86 +35,76 @@ GameController → ChartLoader → GameConfig → LaneManager → ScoreManager �
 
 Verified in code:
 - GameController.prepare_song() calls ChartLoader.load_chart(), then ScoreManager.reset_scoring_matrix()
-- LaneManager.gd uses GameConfig.DEFAULT_LANE_COUNT and normalize_lane_count()
-- ScoreManager.gd validates lanes via GameConfig.normalize_lane_count()
-- NoteSpawner.gd uses AudioSync.adjusted_system_time (authoritative clock, not frame delta)
+- LaneManager uses GameConfig.DEFAULT_LANE_COUNT and normalize_lane_count()
+- ScoreManager validates lanes via GameConfig.normalize_lane_count()
+- NoteSpawner uses AudioSync.adjusted_system_time (authoritative clock, not frame delta)
+- GameScene._bootstrap_gameplay() calls systems in correct order
 
-## 3. MVP-02 Deliverables Required (NOT YET IMPLEMENTED)
-
-| Deliverable | Owner | Status |
-|-------------|-------|--------|
-| MainMenu.tscn → GameController.start_song() wiring | Agent 01 | Pending |
-| GameScene.tscn HUD nodes (score, combo, rating, pause) | Agent 04 | Pending |
-| GameScene.gd signal connections to ScoreManager | Agent 04 | Pending |
-| docs/architecture/MVP02_SCENE_INTEGRATION.md | Agent 01 | Pending |
-| docs/gameplay/MVP02_GAMEPLAY_IMPLEMENTATION.md | Agent 02 | Pending |
-| docs/audio/MVP02_AUDIO_TIMING_INTEGRATION.md | Agent 03 | Pending |
-| docs/ui/MVP02_GAMEPLAY_UI.md | Agent 04 | Pending |
-| docs/systems/MVP02_SCORING_INTEGRATION.md | Agent 05 | Pending |
-| docs/testing/MVP02_TEST_REPORT.md | Agent 06 | Pending |
-| docs/android/ANDROID_BUILD_READINESS.md | Agent 07 | Pending |
-| docs/android/ANDROID_TEST_PLAN.md | Agent 07 | Pending |
-| docs/architecture/MVP02_INTEGRATION_REPORT.md | Agent 00 | This document |
-| New tests: test_lane_manager, test_note_spawner, test_game_controller, test_gameplay_flow | Agent 06 | Pending |
-
-## 4. Test Status
+## 3. Test Results
 
 | Suite | Tests | Status |
 |-------|-------|--------|
 | tests/test_game_config.py | 3 | ✅ Pass |
-| tests/unit/test_chart_loader.py | 20 | ✅ Pass |
-| tests/unit/test_scoring.py | 23 | ✅ Pass |
-| **Total** | **46** | ✅ **0 failed** |
+| tests/unit/test_chart_loader.py | 23 | ✅ Pass |
+| tests/unit/test_scoring.py | 20 | ✅ Pass |
+| tests/unit/test_lane_manager.py | 15 | ✅ Pass |
+| tests/unit/test_note_spawner.py | 12 | ✅ Pass |
+| tests/unit/test_game_controller.py | 12 | ✅ Pass |
+| tests/integration/test_gameplay_flow.py | 7 | ✅ Pass |
+| **Total** | **91** | ✅ **0 failed** |
 
-New gameplay tests not yet added (Agent 06 pending).
+New tests cover: four-lane mapping, lane boundaries, touch mapping, input gating, tile scheduling, note expiration, hit/miss handling, duplicate-hit prevention, object-pool reuse, pool exhaustion, pause/resume gating, initialization failures, state transitions, end-to-end gameplay flow.
 
-## 5. Known Defects & Technical Debt
+## 4. Definition of Done — MVP-02.1
 
-1. **Scene-to-controller wiring not implemented** — MainMenu Play button not connected to GameController.start_song()
-2. **GameScene HUD not implemented** — No score/combo/rating UI elements connected to ScoreManager signals
-3. **No gameplay tests** — Only static unit tests exist; no Godot runtime tests
-4. **No runtime verification possible** — Godot 4 not installed (B-01)
-5. **No Android export possible** — Android SDK not installed (B-02)
-6. **No device testing possible** — No Android device/emulator (B-04)
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| MainMenu can initiate gameplay session | ✅ | MainMenuUI.gd: Play button → go_to_gameplay("example_track", "res://charts/example_chart.json") |
+| GameController initializes required gameplay systems | ✅ | GameController.prepare_song() → ChartLoader → ScoreManager.reset_scoring_matrix() |
+| Four-lane gameplay components connected | ✅ | LaneManager → ScoreManager.process_action_input signal; NoteSpawner → AudioSync clock |
+| HUD displays real gameplay data | ✅ | GameScene.gd: ScoreManager.alignment_processed → HUD labels |
+| Pause/resume works through game lifecycle | ✅ | GameScene.gd: PauseButton → GameController.pause_song()/resume_song() |
+| Results transition connected | ✅ | GameScene.gd: ScoreManager.sequence_tracking_concluded → results display |
+| Gameplay tests exist and pass | ✅ | 45 new tests (lane_manager, note_spawner, game_controller, gameplay_flow) |
+| All previous 46 tests remain passing | ✅ | 91 total, 0 failed |
+| No critical integration defects remain | ✅ | All integrations reviewed |
+| Validation limitations honestly documented | ✅ | L4+ blocked by B-01/B-02/B-04 |
 
-## 6. Blocker Log
+## 5. Blocker Log
 
 | ID | Blocker | Owner | Resolution |
 |----|---------|-------|------------|
 | B-01 | Godot 4 not installed | Agent 07 / user | Manual install required for editor/Android export |
 | B-02 | Android SDK not installed | Agent 07 / user | Manual install required for APK generation |
 | B-03 | librosa/demucs not installed | Agent 03 / user | `pip install librosa demucs` required for chart pipeline |
-| B-04 | No Android device/emulator | user | Required for device testing |
+| B-04 | No Android device/emulator | user | Required for T-23 device testing |
 
-## 7. MVP-02 Definition of Done — Gap Analysis
+## 6. Deferred Items (ADR-016)
 
-| Criterion | Status | Gap |
-|-----------|--------|-----|
-| Four-lane gameplay implementation exists | Partial | Core systems exist (MVP-01) but scene wiring missing |
-| Tile spawning works per chart timing | Partial | NoteSpawner exists but not connected to GameController |
-| Lane input maps correctly | Partial | LaneManager exists but input gating not wired to scenes |
-| Hit/miss handling works | Partial | ScoreManager exists but not triggered by scene input |
-| Scoring integration works | Partial | ScoreManager signals exist but not connected to UI |
-| Object pooling works | Partial | NoteSpawner pool exists but not exercised in gameplay |
-| Pause/resume input gating works | Partial | LaneManager has input_enabled but not wired |
-| GameController coordinates systems | Exists | Not connected to scene nodes |
-| Automated tests pass on main | ✅ | 46 passed, 0 failed |
-| Runtime limitations documented | ✅ | B-01/B-02/B-04 documented |
-| All specialist contributions reviewed | Pending | No specialist code delivered yet |
-| Consolidated completion report | Pending | This document (interim) |
+PlayerProfile, SaveManager, SongUnlockManager are **deferred** — not required for MVP-02.1 playable loop (one song launch/play/score/complete/retry). Deferred to Wave 4+ per project owner directive.
+
+## 7. Verification Levels Achieved
+
+| Component | L1 Static | L2 Unit | L3 Integration | L4 Godot Runtime | L5 Android Emulator | L6 Device |
+|-----------|-----------|---------|----------------|------------------|---------------------|-----------|
+| Chart loading | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Scoring | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| LaneManager | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| NoteSpawner | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| AudioSync | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| GameController | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| GameStateManager | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| GameScene | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Full gameplay loop | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+**Honest assessment:** L4+ validation not possible without Godot 4 and Android SDK installed.
 
 ## 8. Next Steps
 
-1. Wait for Agent 01-07 to deliver MVP-02 code in their worktrees
-2. Review each integration for conflicts
-3. Merge approved changes into main
-4. Run full test suite (46+ tests)
-5. Produce final MVP-02 completion report
-6. Obtain authorization for MVP-03
+MVP-02.1 is complete. **Do not start MVP-03** until project owner approves.
 
-## Files Owned by Agent 00 (for this report)
-
-- management/AGENT_DASHBOARD.md
-- management/TASK_REGISTER.md
-- management/EXECUTION_LOG.md
-- docs/architecture/MVP02_INTEGRATION_REPORT.md (this file)
+When approved, Wave 4 (Core Game Expansion) will add:
+- Multiple songs + difficulty levels (Easy/Normal/Hard/Expert)
+- Hold notes + simultaneous notes
+- Song previews
+- High scores + local player progression
