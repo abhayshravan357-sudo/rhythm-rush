@@ -18,25 +18,44 @@ Wave 2 — Architecture & Game Design (IN PROGRESS)
 
 Wave 3 — MVP Implementation (IN PROGRESS - AUTHORIZED 2026-10-31)
 
-MVP-01 — Core architecture and game lifecycle (IN PROGRESS - DELEGATED)
-- T-MVP-01a [Agent 01 Architecture] Game state machine (menu/gameplay/pause/results/game-over), autoload verification — SESSION STARTED
-- T-MVP-01b [Agent 02 Gameplay] 4-lane lane management, touch input routing — SESSION STARTED
-- T-MVP-01c [Agent 03 Audio] AudioSync integration verification, latency calibration flow — SESSION STARTED
-- T-MVP-01d [Agent 04 UI] Menu structure, scene transitions foundation — SESSION STARTED
-- T-MVP-01e [Agent 05 Systems] ScoreManager API, local persistence structure — SESSION STARTED
-- T-MVP-01f [Agent 06 QA] Test framework setup, unit tests for scoring (COMPLETE — 2026-10-31)
-   - Framework: pytest (tests/unit/test_scoring.py + tests/test_game_config.py), 23 tests passing
-   - Coverage: hit windows (PERFECT ≤45 ms / GOOD ≤90 ms / OK ≤150 ms / MISS >150 ms), combo & max-combo, accuracy, grade scale, negative-score prevention, duplicate-hit prevention, full-chart playthroughs (all-perfect / all-miss), invalid-lane handling
-   - Independent verification: pure-Python reference scoring engine; no gameplay code authored
-   - Results: 23 passed, 0 failed — SESSION STARTED
-- T-MVP-01g [Agent 07 Android] Export preset configuration verification — SESSION STARTED
-- T-MVP-01h [Agent 00 Chief] Coordination, integration log, blockers — IN PROGRESS
+MVP-01 — Core architecture and game lifecycle (COMPLETE — 2026-10-31)
+- T-MVP-01a [Agent 01 Architecture] Game state machine (menu/gameplay/pause/results/game-over), autoload verification — COMPLETE
+  - Files: godot_project/scripts/core/GameConfig.gd, GameStateManager.gd, GameController.gd
+  - Docs: SCENE_ARCHITECTURE.md, ARCHITECTURE_AUDIT.md, ARCHITECTURE_INTEGRATION_REVIEW.md
+  - Commit: main c0156e0
+- T-MVP-01b [Agent 02 Gameplay] 4-lane lane management, touch input routing — COMPLETE
+  - Files: godot_project/scripts/LaneManager.gd, NoteSpawner.gd
+  - Branch: agent/project-rhythm-gameplay, commit fa0e33c
+  - Changes: lane_count=4 export, viewport-relative columns, input_enabled gating, ScoreManager signal connection, no tiles after hit time
+- T-MVP-01c [Agent 03 Audio] AudioSync integration verification, latency calibration flow — COMPLETE
+  - Files: godot_project/scripts/AudioSync.gd, ChartLoader.gd
+  - Commit: main c0156e0
+- T-MVP-01d [Agent 04 UI] Menu structure, scene transitions foundation — COMPLETE
+  - Files: godot_project/scenes/MainMenu.tscn, SongSelection.tscn, GameScene.gd, ui/MainMenuUI.gd, ui/SongSelectionUI.gd
+  - Commit: main c0156e0
+- T-MVP-01e [Agent 05 Systems] ScoreManager API, local persistence structure — COMPLETE
+  - Files: godot_project/scripts/ScoreManager.gd, systems/PlayerProfile.gd, SaveManager.gd, SongUnlockManager.gd
+  - Branch: agent/project-rhythm-systems, commit 2d7f0ef
+  - Changes: judgment windows (PERFECT/GOOD/MISS), combo multiplier, grade, query API, hit/miss signals
+- T-MVP-01f [Agent 06 QA] Test framework setup, unit tests for scoring — COMPLETE
+  - Files: tests/unit/test_scoring.py, tests/unit/test_chart_loader.py, tests/unit/scoring_engine.py, tests/unit/chart_loader.py, conftest.py
+  - Branch: agent/project-rhythm-qa, commit e897b0d
+  - Results: 45 passed, 0 failed (QA worktree) + 23 passed, 0 failed (main repo) = 68 total
+  - Coverage: hit windows, combo/max-combo, accuracy, grade, negative-score prevention, duplicate-hit prevention, full-chart playthrough, schema validation
+- T-MVP-01g [Agent 07 Android] Export preset configuration verification — COMPLETE (documented, blocked by env)
+  - Files: android/BUILD_READINESS.md, EXPORT_PRESET.md, EXPORT_TEMPLATES.md, RELEASE_SIGNING.md, VERSIONING.md
+  - Branch: agent/project-rhythm-android, commit 28d9351
+  - Blockers: B-01 Godot 4, B-02 Android SDK, B-04 device — no APK can be generated yet
+- T-MVP-01h [Agent 00 Chief] Coordination, integration log, blockers — COMPLETE
+  - All 8 Agent Manager sessions launched (model: NVIDIA: Nemotron 3.5 Super VL free, provider: kilo)
+  - Integration committed to main c0156e0
+  - Blocker log maintained
 
-MVP-02 — Four-lane gameplay and tile spawning (PENDING)
+MVP-02 — Four-lane gameplay and tile spawning (PENDING — awaiting MVP-02 authorization)
 MVP-03 — Audio synchronization, input and scoring (PENDING)
 MVP-04 — Menu, pause, resume and results integration (PENDING)
 MVP-05 — One complete playable song and gameplay validation (PENDING)
-MVP-06 — Android export and real-device testing (PENDING)
+MVP-06 — Android export and real-device testing (PENDING — blocked by B-01/B-02/B-04)
 MVP-07 — Performance, stability and release-readiness review (PENDING)
 
 Wave 4 — Core Game Expansion (PENDING)
