@@ -17,8 +17,9 @@ Verification rule: An agent is "active" only when its session has been verified 
 
 ## Session verification log
 
-- ses_e6e1ade1cffeZS9qGcHXjMPudi (local, busy) — current orchestration session. Not assigned to a specialist worktree.
-- No specialist sessions have been started yet. Verified = false for all specialists until sessions are created and confirmed via Agent Manager.
+- ses_e6e1ade1cffeZS9qGcHXjMPudi (local, idle) — Agent 00 Chief Engineer orchestration session.
+- Agent 01-07 sessions started via Agent Manager (request am-1793461032693-ljkx1m). Session IDs pending confirmation via Agent Manager.
+- Verified = false for all specialists until sessions are confirmed active via Agent Manager.
 
 ## File ownership policy
 

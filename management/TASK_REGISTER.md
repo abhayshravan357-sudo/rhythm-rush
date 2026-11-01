@@ -18,15 +18,19 @@ Wave 2 — Architecture & Game Design (IN PROGRESS)
 
 Wave 3 — MVP Implementation (IN PROGRESS - AUTHORIZED 2026-10-31)
 
-MVP-01 — Core architecture and game lifecycle (IN PROGRESS)
-- T-MVP-01a [Agent 01 Architecture] Game state machine (menu/gameplay/pause/results/game-over), autoload verification
-- T-MVP-01b [Agent 02 Gameplay] 4-lane lane management, touch input routing
-- T-MVP-01c [Agent 03 Audio] AudioSync integration verification, latency calibration flow
-- T-MVP-01d [Agent 04 UI] Menu structure, scene transitions foundation
-- T-MVP-01e [Agent 05 Systems] ScoreManager API, local persistence structure
-- T-MVP-01f [Agent 06 QA] Test framework setup, unit tests for scoring
-- T-MVP-01g [Agent 07 Android] Export preset configuration verification
-- T-MVP-01h [Agent 00 Chief] Coordination, integration log, blockers
+MVP-01 — Core architecture and game lifecycle (IN PROGRESS - DELEGATED)
+- T-MVP-01a [Agent 01 Architecture] Game state machine (menu/gameplay/pause/results/game-over), autoload verification — SESSION STARTED
+- T-MVP-01b [Agent 02 Gameplay] 4-lane lane management, touch input routing — SESSION STARTED
+- T-MVP-01c [Agent 03 Audio] AudioSync integration verification, latency calibration flow — SESSION STARTED
+- T-MVP-01d [Agent 04 UI] Menu structure, scene transitions foundation — SESSION STARTED
+- T-MVP-01e [Agent 05 Systems] ScoreManager API, local persistence structure — SESSION STARTED
+- T-MVP-01f [Agent 06 QA] Test framework setup, unit tests for scoring (COMPLETE — 2026-10-31)
+   - Framework: pytest (tests/unit/test_scoring.py + tests/test_game_config.py), 23 tests passing
+   - Coverage: hit windows (PERFECT ≤45 ms / GOOD ≤90 ms / OK ≤150 ms / MISS >150 ms), combo & max-combo, accuracy, grade scale, negative-score prevention, duplicate-hit prevention, full-chart playthroughs (all-perfect / all-miss), invalid-lane handling
+   - Independent verification: pure-Python reference scoring engine; no gameplay code authored
+   - Results: 23 passed, 0 failed — SESSION STARTED
+- T-MVP-01g [Agent 07 Android] Export preset configuration verification — SESSION STARTED
+- T-MVP-01h [Agent 00 Chief] Coordination, integration log, blockers — IN PROGRESS
 
 MVP-02 — Four-lane gameplay and tile spawning (PENDING)
 MVP-03 — Audio synchronization, input and scoring (PENDING)
