@@ -2,7 +2,7 @@
 
 Mirrors the layout of tests/test_game_config.py: ROOT is the repository root
 and CHART_PATH points at charts/example_chart.json, which ships in this
-worktree (laneCount 6, lanes 0-5, TAP/HOLD notes).
+worktree (laneCount 4, lanes 0-3, TAP/HOLD notes).
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CHART_PATH = ROOT / "charts" / "example_chart.json"
 
 LANE_COUNT = 4
+SIX_LANE_COUNT = 6
 
 
 def load_chart() -> dict:
@@ -30,3 +31,8 @@ def chart() -> dict:
 @pytest.fixture
 def lane_count() -> int:
     return LANE_COUNT
+
+
+@pytest.fixture
+def six_lane_count() -> int:
+    return SIX_LANE_COUNT
