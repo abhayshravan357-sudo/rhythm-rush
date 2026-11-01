@@ -2,8 +2,11 @@
 
 Verifies the pure-Python reference implementation of ChartLoader.gd
 (load_chart, get_notes_in_window, get_metadata) plus schema validation
-against charts/example_chart.json (laneCount 6, lanes 0-5, TAP/HOLD) and
+against charts/example_chart.json (laneCount 4, lanes 0-3, TAP/HOLD) and
 synthetic invalid payloads. No Godot FileAccess/JSON is used.
+
+Six-lane compatibility is verified separately: GameConfig.ALLOWED_LANE_COUNTS
+includes both 4 and 6, so a 6-lane chart must also validate cleanly.
 """
 
 from __future__ import annotations
@@ -42,7 +45,7 @@ def test_load_chart_returns_parsed_dict(chart):
 
 def test_load_chart_metadata_and_lane_count(chart):
     meta = chart["metaData"]
-    assert meta["laneCount"] == 6
+    assert meta["laneCount"] == 4
     assert meta["songName"] == "example_track"
     assert meta["bpm"] == 128.0
 
@@ -51,12 +54,43 @@ def test_load_chart_note_count(chart):
     assert len(chart["noteTimeline"]) == 43
 
 
+def test_chart_metadata_matches_gameconfig_default(chart):
+    """MVP chart laneCount (4) must match GameConfig.DEFAULT_LANE_COUNT (4).
+
+    GameConfig.ALLOWED_LANE_COUNTS = [4, 6]; MVP uses 4. Six-lane charts are
+    validated separately via test_six_lane_chart_compatibility.
+    """
+    assert chart["metaData"]["laneCount"] == 4
+
+
 # ── Schema validation on the shipped example chart ────────────────────────────
 
 
 def test_example_chart_passes_schema(chart, lane_count):
     errors = validate_chart_schema(chart, lane_count)
     assert errors == [], f"schema violations: {errors}"
+
+
+def test_six_lane_chart_compatibility(six_lane_count):
+    """A 6-lane chart must validate cleanly (GameConfig supports 4 and 6)."""
+    six_lane_chart = {
+        "metaData": {
+            "songName": "six_lane_test",
+            "bpm": 120.0,
+            "totalDuration": 5.0,
+            "laneCount": 6,
+            "audioFile": "six_lane.ogg",
+        },
+        "noteTimeline": [
+            {"timestamp": 0.1, "lane": 0, "type": "TAP"},
+            {"timestamp": 0.2, "lane": 5, "type": "TAP"},
+            {"timestamp": 0.3, "lane": 3, "type": "HOLD", "duration": 0.4},
+        ],
+    }
+    errors = validate_chart_schema(six_lane_chart, six_lane_count)
+    assert errors == [], f"6-lane schema violations: {errors}"
+    for note in six_lane_chart["noteTimeline"]:
+        assert 0 <= int(note["lane"]) < six_lane_count
 
 
 def test_example_chart_lanes_in_range(chart, lane_count):
@@ -111,7 +145,7 @@ def test_get_notes_in_window_empty_when_no_chart():
 def test_get_metadata_returns_meta(chart):
     meta = get_metadata(chart)
     assert meta == chart["metaData"]
-    assert meta["laneCount"] == 6
+    assert meta["laneCount"] == 4
 
 
 def test_get_metadata_empty_when_no_chart():
