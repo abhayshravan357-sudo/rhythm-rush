@@ -19,17 +19,19 @@ Wave 2 — Architecture & Game Design (IN PROGRESS)
 Wave 3 — MVP Implementation (IN PROGRESS - AUTHORIZED 2026-10-31)
 
 MVP-01 — Core architecture and game lifecycle (COMPLETE — 2026-10-31)
-- All tasks complete. Test results on integrated main: 41 passed, 3 failed (laneCount mismatch — QA chart_loader tests expect 6, chart is 4). Defect carried into MVP-02.
+- All tasks complete. Test results on integrated main: 46 passed, 0 failed.
+- 3 chart-loader test failures resolved: laneCount=4 MVP chart + test_six_lane_chart_compatibility for 6-lane charts.
+- Test coverage: hit windows PERFECT ≤50 ms (300 pts) / GOOD ≤100 ms (100 pts) / MISS >100 ms (0 pts); combo/max combo; accuracy; grade; negative-score prevention; duplicate-hit prevention; ChartLoader schema load/validate/get_notes_in_window/get_metadata incl. failure modes.
 
-MVP-02 — Four-lane gameplay and tile spawning (IN PROGRESS - AUTHORIZED 2026-11-01)
-- T-MVP-02a [Agent 01 Architecture] Game state machine wiring, initialization contract, scene-to-controller bridge
-- T-MVP-02b [Agent 02 Gameplay] 4-lane gameplay, tile spawning, hit detection, object pooling, input gating
-- T-MVP-02c [Agent 03 Audio] Audio clock → gameplay integration, 4-lane chart validation
-- T-MVP-02d [Agent 04 UI] Gameplay HUD, scene transitions, pause/resume wiring
-- T-MVP-02e [Agent 05 Systems] Scoring query API, signals, initialization from chart
-- T-MVP-02f [Agent 06 QA] Fix 3 failing tests, add gameplay tests (spawning, lanes, hit/miss, duplicate prevention, pool reuse)
-- T-MVP-02g [Agent 07 Android] Export readiness docs, blocker tracking
-- T-MVP-02h [Agent 00 Chief] Coordination, integration review, initialization contract enforcement
+MVP-02 — Four-lane gameplay and tile spawning (IN PROGRESS — all 8 agents active)
+- T-MVP-02a [Agent 01 Architecture] Game state machine wiring, initialization contract, scene-to-controller bridge — IN PROGRESS
+- T-MVP-02b [Agent 02 Gameplay] 4-lane gameplay, tile spawning, hit detection, object pooling, input gating — IN PROGRESS
+- T-MVP-02c [Agent 03 Audio] Audio clock → gameplay integration, 4-lane chart validation — IN PROGRESS
+- T-MVP-02d [Agent 04 UI] Gameplay HUD, scene transitions, pause/resume wiring — IN PROGRESS
+- T-MVP-02e [Agent 05 Systems] Scoring query API, signals, initialization from chart — IN PROGRESS
+- T-MVP-02f [Agent 06 QA] Fix 3 failing tests (DONE), add gameplay tests (spawning, lanes, hit/miss, duplicate prevention, pool reuse) — IN PROGRESS
+- T-MVP-02g [Agent 07 Android] Export readiness docs, blocker tracking — IN PROGRESS
+- T-MVP-02h [Agent 00 Chief] Coordination, integration review, initialization contract enforcement — IN PROGRESS
 
 Wave 4 — Core Game Expansion (PENDING)
 - T-24 Multiple songs + difficulty levels (Easy/Normal/Hard/Expert)
