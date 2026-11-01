@@ -24,6 +24,16 @@ MVP-01 — Core architecture and game lifecycle (COMPLETE — 2026-10-31)
 - Test coverage: hit windows PERFECT ≤50 ms (300 pts) / GOOD ≤100 ms (100 pts) / MISS >100 ms (0 pts); combo/max combo; accuracy; grade; negative-score prevention; duplicate-hit prevention; ChartLoader schema load/validate/get_notes_in_window/get_metadata incl. failure modes.
 
 MVP-02 — Four-lane gameplay and tile spawning (CONDITIONALLY ACCEPTED — 2026-11-01)
+- Implementation integrated into main at commit 2cbf5e6.
+- Verification complete via MVP-02.1 (see below).
+- Deferred per project owner: PlayerProfile, SaveManager, SongUnlockManager NOT integrated unless required for playable loop (ADR-016).
+
+MVP-02.1 — Gameplay Integration & Verification (COMPLETE — 2026-11-01)
+- All 8 specialist tasks complete. Test results on integrated main: 91 passed, 0 failed.
+- Gameplay loop verified: Chart → Tile Spawning → Four Lanes → Touch Input → Hit Detection → Score Update.
+- PlayerProfile/SaveManager/SongUnlockManager deferred (ADR-016) — not required for playable loop.
+
+MVP-02.1 task details documented in individual agent completion reports above.
 
 ## T-MVP-02a — GameController + GameStateManager Integration
 **Responsible Agent:** Agent 01 — Architecture Engineer
