@@ -5,12 +5,11 @@
 # this API; Agent 04 (UI) reads results via signals/getters.
 #
 # Judgment windows (one-sided delta from note timestamp):
-#   PERFECT : ≤ 45 ms   → 300 pts
-#   GOOD    : ≤ 90 ms   → 100 pts
-#   OK      : ≤ 150 ms  →  50 pts
-#   MISS    : > 150 ms  →   0 pts, combo reset
+#   PERFECT : ≤ 50 ms   → 300 pts
+#   GOOD    : ≤ 100 ms  → 100 pts
+#   MISS    : > 100 ms  →   0 pts, combo reset
 #
-# Notes that are never hit and drift past +150 ms are auto-missed in _process().
+# Notes that are never hit and drift past +100 ms are auto-missed in _process().
 #
 # Scoring model:
 #   multiplier = clamp(1 + floor(combo / 10), 1, MAX_MULTIPLIER)
@@ -21,15 +20,13 @@
 extends Node
 
 # ── Judgment windows (seconds) ────────────────────────────────────────────
-const JUDGMENT_PERFECT_MS: float = 0.045
-const JUDGMENT_GOOD_MS: float = 0.090
-const JUDGMENT_OK_MS: float = 0.150
-const HIT_MATCH_BOUND_MS: float = 0.180  # outer bound to attempt a lane match
+const JUDGMENT_PERFECT_MS: float = 0.050
+const JUDGMENT_GOOD_MS: float = 0.100
+const HIT_MATCH_BOUND_MS: float = 0.100  # outer bound to attempt a lane match
 
 # ── Base points per rating ────────────────────────────────────────────────
 const SCORE_PERFECT: int = 300
 const SCORE_GOOD: int = 100
-const SCORE_OK: int = 50
 const SCORE_MISS: int = 0
 
 # ── Combo multiplier ──────────────────────────────────────────────────────
@@ -58,7 +55,6 @@ var multiplier: int = 1
 
 var perfect_count: int = 0
 var good_count: int = 0
-var ok_count: int = 0
 var miss_count: int = 0
 var total_notes: int = 0
 
@@ -76,7 +72,6 @@ func reset_scoring_matrix(chart_payload: Dictionary) -> void:
 	multiplier = 1
 	perfect_count = 0
 	good_count = 0
-	ok_count = 0
 	miss_count = 0
 	total_notes = 0
 	_resolved_count = 0
@@ -135,10 +130,6 @@ func evaluate_judgment(error_delta: float) -> Dictionary:
 		result["rating"] = "GOOD"
 		result["base_points"] = SCORE_GOOD
 		result["is_hit"] = true
-	elif error_delta <= JUDGMENT_OK_MS:
-		result["rating"] = "OK"
-		result["base_points"] = SCORE_OK
-		result["is_hit"] = true
 	return result
 
 
@@ -162,7 +153,6 @@ func _evaluate_hit_precision(note_index: int, error_delta: float) -> void:
 
 	perfect_count = perfect_count + (1 if rating == "PERFECT" else 0)
 	good_count = good_count + (1 if rating == "GOOD" else 0)
-	ok_count = ok_count + (1 if rating == "OK" else 0)
 
 	combo += 1
 	max_combo = maxi(max_combo, combo)
@@ -206,8 +196,8 @@ func _process(_delta: float) -> void:
 		var note: Dictionary = reference_timeline[i]
 		if typeof(note) != TYPE_DICTIONARY:
 			continue
-		# Auto-miss notes that have drifted 150 ms past their hit window
-		if playback_time > float(note.get("timestamp", 0.0)) + JUDGMENT_OK_MS:
+		# Auto-miss notes that have drifted 100 ms past their hit window
+		if playback_time > float(note.get("timestamp", 0.0)) + JUDGMENT_GOOD_MS:
 			resolved_flags[i] = true
 			_register_miss()
 
@@ -232,7 +222,7 @@ func get_multiplier() -> int:
 func get_accuracy() -> float:
 	if total_notes == 0:
 		return 0.0
-	var hits: int = perfect_count + good_count + ok_count
+	var hits: int = perfect_count + good_count
 	return clampf(float(hits) / float(total_notes) * 100.0, 0.0, 100.0)
 
 func get_grade() -> String:
@@ -262,7 +252,6 @@ func get_stats() -> Dictionary:
 		"grade": get_grade(),
 		"perfect": perfect_count,
 		"good": good_count,
-		"ok": ok_count,
 		"miss": miss_count,
 		"total_notes": total_notes,
 	}
