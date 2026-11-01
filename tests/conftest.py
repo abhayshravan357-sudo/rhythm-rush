@@ -15,7 +15,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 CHART_PATH = ROOT / "charts" / "example_chart.json"
 
-LANE_COUNT = 6
+LANE_COUNT = 4
 
 
 def load_chart() -> dict:
