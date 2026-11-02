@@ -4,9 +4,19 @@
 # Reading get_playback_position() + AudioServer.get_time_since_last_mix() gives
 # the most accurate available audio timestamp on mobile hardware, decoupled from
 # frame delta accumulation drift.
+#
+# MVP-03 additions:
+#   - pause_audio_pipeline() / resume_audio_pipeline() preserve timing across
+#     pauses by seeking the AudioStreamPlayer to the paused position, so
+#     adjusted_system_time never jumps backward on resume (no timing corruption).
+#   - Song completion detection via playback-position-vs-duration comparison.
+#   - Timing drift analysis: drift_ms() reports the delta between the audio
+#     clock and the adjusted system clock over the session.
 extends Node
 
 signal song_completed
+signal playback_paused
+signal playback_resumed
 
 const APPROACH_TIME: float = 1.5  ## Visible note window ahead of the hit line (seconds)
 
@@ -16,6 +26,14 @@ var local_hardware_offset: float = 0.0
 
 var audio_player_node: AudioStreamPlayer = null
 var active_playback_flag: bool = false
+var is_paused: bool = false
+
+# Pause compensation: adjusted_system_time frozen at pause moment.
+var _paused_adjusted_time: float = 0.0
+# Song duration (seconds) for completion detection; 0.0 = unknown.
+var song_duration: float = 0.0
+# Drift samples: each entry is (audio_clock - adjusted_system_time) at a tick.
+var _drift_samples: Array[float] = []
 
 
 func get_playback_position_seconds() -> float:
@@ -34,6 +52,10 @@ func get_raw_audio_time() -> float:
 
 func is_playing() -> bool:
 	return active_playback_flag and audio_player_node != null and audio_player_node.playing
+
+
+func is_paused_state() -> bool:
+	return is_paused
 
 
 func get_offset() -> float:
@@ -55,6 +77,36 @@ func get_approach_time() -> float:
 	return APPROACH_TIME
 
 
+# ── Drift analysis ────────────────────────────────────────────────────────────
+
+func drift_ms() -> float:
+	"""Mean timing drift (ms) between raw audio clock and adjusted clock.
+
+	Positive means the audio clock runs ahead of adjusted time. Returns 0.0
+	when no samples have been collected.
+	"""
+	if _drift_samples.is_empty():
+		return 0.0
+	var sum: float = 0.0
+	for s in _drift_samples:
+		sum += s
+	return (sum / float(_drift_samples.size())) * 1000.0
+
+
+func drift_sample_count() -> int:
+	return _drift_samples.size()
+
+
+func _record_drift_sample() -> void:
+	var drift: float = current_audio_time - adjusted_system_time
+	_drift_samples.append(drift)
+	# Cap sample history to keep memory bounded.
+	if _drift_samples.size() > 600:
+		_drift_samples.pop_front()
+
+
+# ── Lifecycle ─────────────────────────────────────────────────────────────────
+
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	load_calibration_data()
@@ -72,22 +124,65 @@ func load_calibration_data() -> void:
 func initialize_playback_channel(target_player: AudioStreamPlayer) -> void:
 	audio_player_node = target_player
 	active_playback_flag = false
+	is_paused = false
 	current_audio_time = 0.0
 	adjusted_system_time = 0.0
+	_paused_adjusted_time = 0.0
+	song_duration = 0.0
+	_drift_samples.clear()
+
+
+func set_song_duration(seconds: float) -> void:
+	song_duration = max(0.0, float(seconds))
 
 
 func start_audio_pipeline() -> void:
 	if audio_player_node == null:
 		printerr("[AudioSync] No AudioStreamPlayer assigned.")
 		return
+	if is_paused:
+		_resume_from_pause()
+		return
 	audio_player_node.play()
 	active_playback_flag = true
+	is_paused = false
+	current_audio_time = 0.0
+	adjusted_system_time = 0.0
+
+
+func pause_audio_pipeline() -> void:
+	if not active_playback_flag or is_paused:
+		return
+	is_paused = true
+	active_playback_flag = false
+	_paused_adjusted_time = adjusted_system_time
+	if audio_player_node != null:
+		audio_player_node.stop()
+	emit_signal("playback_paused")
+
+
+func _resume_from_pause() -> void:
+	if audio_player_node == null:
+		return
+	# Seek to the paused adjusted position (translated back to raw audio clock)
+	# so playback resumes without a backward jump in adjusted_system_time.
+	var seek_position: float = _paused_adjusted_time + local_hardware_offset
+	seek_position = max(0.0, seek_position)
+	audio_player_node.seek(seek_position)
+	audio_player_node.play()
+	active_playback_flag = true
+	is_paused = false
+	emit_signal("playback_resumed")
 
 
 func stop_audio_pipeline() -> void:
 	if audio_player_node != null:
 		audio_player_node.stop()
 	active_playback_flag = false
+	is_paused = false
+	current_audio_time = 0.0
+	adjusted_system_time = 0.0
+	_paused_adjusted_time = 0.0
 
 
 func _process(_delta: float) -> void:
@@ -96,6 +191,7 @@ func _process(_delta: float) -> void:
 
 	if not audio_player_node.playing:
 		active_playback_flag = false
+		is_paused = false
 		emit_signal("song_completed")
 		return
 
@@ -107,3 +203,12 @@ func _process(_delta: float) -> void:
 	)
 
 	adjusted_system_time = current_audio_time - local_hardware_offset
+
+	# Song completion detection: playback reached (or passed) the song duration.
+	if song_duration > 0.0 and current_audio_time >= song_duration:
+		active_playback_flag = false
+		is_paused = false
+		emit_signal("song_completed")
+		return
+
+	_record_drift_sample()
