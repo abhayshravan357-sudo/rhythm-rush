@@ -20,14 +20,27 @@ var fixed_judgment_y: float = 918.0   # 85 % of 1080
 # Owned by Agent 01; LaneManager only exposes the control point.
 var input_enabled: bool = false
 
+# Duplicate-input prevention: minimum time between accepted taps on the same lane.
+const INPUT_COOLDOWN_SECONDS: float = 0.05  # 50 ms
+
+# Active touches per lane (lane_index -> touch finger id) for simultaneous-input
+# handling. A lane that already has a touch down ignores further presses until
+# that finger is released.
+var _active_touches: Dictionary = {}
+# Last accepted tap time per lane (lane_index -> wall-clock seconds) for
+# cooldown enforcement.
+var _last_tap_time: Dictionary = {}
+
 
 func _ready() -> void:
 	lane_count = GameConfig.normalize_lane_count(lane_count)
 	_evaluate_viewport_metrics()
 	get_tree().root.size_changed.connect(_evaluate_viewport_metrics)
-	# Route every registered touch to hit registration (ScoreManager).
-	# ScoreManager is an Agent 05-owned autoload; we call it, never modify it.
-	column_touch_down.connect(Callable(ScoreManager, "process_action_input"))
+	# Route touch input through the local handler so it is gated by the gameplay
+	# state machine before reaching ScoreManager (Agent 05-owned; we call it,
+	# never modify it).
+	column_touch_down.connect(Callable(self, "_on_column_touch_down"))
+	column_touch_up.connect(Callable(self, "_on_column_touch_up")
 
 
 func _evaluate_viewport_metrics() -> void:
@@ -90,8 +103,25 @@ func _input(event: InputEvent) -> void:
 		if lane < 0:
 			return
 		if event.pressed:
+			# Simultaneous-input handling: ignore presses on a lane that already
+			# has an active touch. Different lanes are tracked independently.
+			if _active_touches.has(lane):
+				return
+			# Duplicate-input prevention: ignore taps faster than the cooldown.
+			var now: float = Time.get_ticks_msec() / 1000.0
+			var last_tap: float = _last_tap_time.get(lane, -999.0)
+			if now - last_tap < INPUT_COOLDOWN_SECONDS:
+				return
+			_active_touches[lane] = event.touch_index
+			_last_tap_time[lane] = now
 			emit_signal("column_touch_down", lane)
 		else:
+			# Touch up: release this lane's active touch if it matches the
+			# finger that went down. Touch up is emitted regardless so HOLD
+			# release handling can observe it downstream.
+			var stored_id: Variant = _active_touches.get(lane, null)
+			if stored_id != null and stored_id == event.touch_index:
+				_active_touches.erase(lane)
 			emit_signal("column_touch_up", lane)
 
 
@@ -99,3 +129,9 @@ func _on_column_touch_down(lane_index: int) -> void:
 	if not GameStateManager.is_playing():
 		return
 	ScoreManager.process_action_input(lane_index)
+
+
+func _on_column_touch_up(lane_index: int) -> void:
+	# Reserved for HOLD-note release judgment (ScoreManager-owned, future MVP).
+	# For MVP, touch-up only releases the lane's active-touch tracking above.
+	pass

@@ -6,6 +6,9 @@
 extends Node2D
 
 const MAX_POOL_LIMIT: int = 200
+# Notes whose hit time has passed this many seconds are treated as expired
+# (missed) by the spawner's visual lifecycle.
+const RETIRE_GRACE_SECONDS: float = 0.15
 
 var preallocated_node_pool: Array[ColorRect] = []
 var active_rendering_array: Array[ColorRect] = []
@@ -14,6 +17,13 @@ var active_rendering_array: Array[ColorRect] = []
 
 var next_evaluative_note_index: int = 0
 var tracking_chart_timeline: Array = []
+# Timeline indices already resolved (expired/missed) by the spawner lifecycle,
+# used to avoid duplicate missed-note processing.
+var _judged_note_indices: Array[int] = []
+# Input-latency samples (seconds): audio-clock time at deploy minus note hit
+# time. Used to validate spawn timing against the latency-compensated clock.
+var _latency_samples: Array[float] = []
+var average_input_latency: float = 0.0
 
 
 func _ready() -> void:
@@ -42,6 +52,9 @@ func start_spawning_sequence(chart_data: Dictionary) -> void:
 	tracking_chart_timeline = chart_data["noteTimeline"]
 	next_evaluative_note_index = 0
 	active_rendering_array.clear()
+	_judged_note_indices.clear()
+	_latency_samples.clear()
+	average_input_latency = 0.0
 	# Hide any tiles that were active from a previous game
 	for tile: ColorRect in preallocated_node_pool:
 		tile.visible = false
@@ -75,6 +88,7 @@ func _process(_delta: float) -> void:
 			break  # Timeline is sorted; no later note can qualify yet
 
 	_synchronize_active_elements(playback_time)
+	_process_expired_notes(playback_time)
 
 
 func _deploy_pool_element(note_spec: Dictionary, timeline_index: int) -> void:
@@ -91,6 +105,14 @@ func _deploy_pool_element(note_spec: Dictionary, timeline_index: int) -> void:
 		_configure_tile_visual(tile, note_spec)
 		tile.visible = true
 		active_rendering_array.append(tile)
+
+		# Sample input latency: audio-clock time at deploy vs note hit time.
+		# Notes deploy up to APPROACH_TIME seconds before the hit, so this
+		# delta is negative and its magnitude is the approach lead time.
+		var deploy_time: float = AudioSync.adjusted_system_time
+		var hit_time: float = float(note_spec.get("timestamp", 0.0))
+		_latency_samples.append(deploy_time - hit_time)
+		_recompute_average_latency()
 		return
 
 	push_warning("[NoteSpawner] Pool exhausted — increase MAX_POOL_LIMIT.")
@@ -132,7 +154,14 @@ func _synchronize_active_elements(playback_time: float) -> void:
 		var calc_y: float = position_ratio * drop_dist
 
 		if tile.get_meta("note_type") == "HOLD":
-			tile.position.y = calc_y - tile.size.y  # Bottom-anchored for HOLD notes
+			# HOLD notes are bottom-anchored and sustained until hit_time +
+			# duration, then retired.
+			var hold_duration: float = float(note.get("duration", 0.0))
+			if playback_time > hit_time + hold_duration:
+				_retire_tile(tile, idx)
+				idx -= 1
+				continue
+			tile.position.y = calc_y - tile.size.y
 		else:
 			tile.position.y = calc_y
 
@@ -143,7 +172,39 @@ func _synchronize_active_elements(playback_time: float) -> void:
 		idx -= 1
 
 
+func _process_expired_notes(playback_time: float) -> void:
+	# Missed-note processing: mark timeline notes whose hit time has passed the
+	# grace window without being spawned/hit as judged, so they are not
+	# re-evaluated by the spawner. ScoreManager independently registers the
+	# scoring miss in its own _process pass.
+	var grace: float = RETIRE_GRACE_SECONDS
+	var i: int = 0
+	while i < tracking_chart_timeline.size():
+		if _judged_note_indices.has(i):
+			i += 1
+			continue
+		var note: Dictionary = tracking_chart_timeline[i]
+		var hit_time: float = float(note.get("timestamp", 0.0))
+		if playback_time > hit_time + grace:
+			_judged_note_indices.append(i)
+		i += 1
+
+
 func _retire_tile(tile: ColorRect, active_idx: int) -> void:
 	tile.visible = false
 	tile.set_meta("is_active", false)
 	active_rendering_array.remove_at(active_idx)
+
+
+func get_average_input_latency() -> float:
+	return average_input_latency
+
+
+func _recompute_average_latency() -> void:
+	if _latency_samples.is_empty():
+		average_input_latency = 0.0
+		return
+	var sum: float = 0.0
+	for s: float in _latency_samples:
+		sum += s
+	average_input_latency = sum / float(_latency_samples.size())
