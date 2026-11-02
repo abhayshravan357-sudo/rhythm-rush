@@ -19,6 +19,7 @@ Records architectural and technical decisions made during development.
 | ADR-013 | 2026-11-01 | Integration order: GameController → PlayerProfile → GameScene → Gameplay/Audio → Tests | GameController unblocks all; PlayerProfile for persistence; GameScene for UI wiring; tests last | Agent 00 | PROPOSED |
 | ADR-014 | 2026-11-01 | Duplicate -2 branches to be archived | 8 stale branches at commit 1ded253; kilo worktrees internal; cleanup with approval | Agent 00 | PROPOSED |
 | ADR-015 | 2026-11-01 | No L4+ claims without Godot/Android installed | Verification honesty: max L3 (integration tests) achievable in current environment | Agent 00 | ACCEPTED |
+| ADR-016 | 2026-11-01 | PlayerProfile/SaveManager/SongUnlockManager deferred for MVP-02.1 | Not required for playable loop (one song launch/play/score/complete/retry). Defer to Wave 4+ per project owner directive. | Agent 00 | ACCEPTED |
 
 ## Decision Process
 
