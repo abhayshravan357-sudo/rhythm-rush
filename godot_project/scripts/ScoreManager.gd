@@ -23,8 +23,6 @@ extends Node
 signal alignment_processed(rating: String, combo: int, accuracy: float)
 signal sequence_tracking_concluded(final_score: int, max_combo: int, accuracy: float, grade: String)
 
-const HIT_WINDOW_PERFECT: float = 0.050
-const HIT_WINDOW_GOOD: float = 0.100
 const MAX_POINTS_PER_NOTE: int = 300
 const MAX_MULTIPLIER: int = 4
 const COMBO_TIER_STEP: int = 10
@@ -161,7 +159,7 @@ func process_action_input(target_lane: int) -> void:
 		return
 	# Only taps within the GOOD window count as a hit; off-window taps are ignored
 	# and the note is auto-missed by _process once the window expires.
-	if best_delta <= HIT_WINDOW_GOOD:
+	if best_delta <= AudioSync.get_judgment_window_good():
 		_evaluate_hit_precision(best_index, best_delta)
 
 
@@ -174,12 +172,12 @@ func _evaluate_hit_precision(note_index: int, error_delta: float) -> void:
 	var rating: String
 	var base_points: int
 
-	if error_delta <= HIT_WINDOW_PERFECT:
+	if error_delta <= AudioSync.get_judgment_window_perfect():
 		rating = "PERFECT"
 		base_points = 300
 		perfect_count += 1
 		operational_combo_counter += 1
-	elif error_delta <= HIT_WINDOW_GOOD:
+	elif error_delta <= AudioSync.get_judgment_window_good():
 		rating = "GOOD"
 		base_points = 100
 		good_count += 1
@@ -236,7 +234,7 @@ func _process(_delta: float) -> void:
 			continue
 		var note: Dictionary = reference_timeline[i]
 		var note_time: float = float(note.get("timestamp", 0.0))
-		if playback_time > note_time + HIT_WINDOW_GOOD:
+		if playback_time > note_time + AudioSync.get_judgment_window_good():
 			_register_miss(i)
 	if is_sequence_complete() and not sequence_completed:
 		_finalize_sequence()
