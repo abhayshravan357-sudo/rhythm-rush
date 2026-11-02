@@ -66,6 +66,18 @@ theme_override_font_sizes/font_size = 64
 position = Vector2(0, -40)
 modulate = Color(1.0, 1.0, 1.0, 0)
 
+[node name="TimingLabel" type="Label" parent="HUD"]
+name = "TimingLabel"
+anchor_right = 0.5
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_top = 140
+text = ""
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+modulate = Color(1.0, 1.0, 1.0, 0)
+
 [node name="PauseButton" type="Button" parent="HUD"]
 name = "PauseButton"
 anchor_right = 1.0
@@ -77,3 +89,45 @@ text = "II"
 size = Vector2(90, 60)
 theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="PauseOverlay" type="CanvasLayer" parent="."]
+
+[node name="Dim" type="ColorRect" parent="PauseOverlay"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.1, 0.1, 0.15, 0.55)
+
+[node name="VBox" type="VBoxContainer" parent="PauseOverlay"]
+anchor_right = 0.5
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = -160
+offset_right = 160
+offset_top = -140
+offset_bottom = 140
+alignment = 1
+
+[node name="PauseLabel" type="Label" parent="VBox"]
+name = "PauseLabel"
+text = "PAUSED"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 56
+
+[node name="PauseResumeButton" type="Button" parent="VBox"]
+name = "PauseResumeButton"
+text = "Resume"
+size = Vector2(260, 56)
+theme_override_font_sizes/font_size = 26
+
+[node name="PauseRetryButton" type="Button" parent="VBox"]
+name = "PauseRetryButton"
+text = "Retry"
+size = Vector2(260, 56)
+theme_override_font_sizes/font_size = 26
+
+[node name="PauseMenuButton" type="Button" parent="VBox"]
+name = "PauseMenuButton"
+text = "Main Menu"
+size = Vector2(260, 56)
+theme_override_font_sizes/font_size = 26
