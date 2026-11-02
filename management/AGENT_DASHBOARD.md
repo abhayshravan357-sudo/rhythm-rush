@@ -1,7 +1,7 @@
 # AGENT DASHBOARD — PROJECT RHYTHM
 
-**Updated:** 2026-11-01 (Post-Audit)  
-**Integration Branch:** main (commit 1c13e83)  
+**Updated:** 2026-11-02 (MVP-03 active)  
+**Integration Branch:** main (commit a1cdc42)  
 **Working Directory:** /home/abhaysawant/hexa-rhythm
 
 ---
@@ -18,7 +18,8 @@
 | Android SDK | NOT Installed | Manual install required (B-01, B-02) |
 | Godot 4 | NOT Installed | Manual install required for editor/export |
 | APK Build | BLOCKED | No Android toolchain present |
-| Test Suite | 46 Passing | All tests pass on main (L1/L2 only) |
+| Test Suite | 91 Passing | All tests pass on main (L1/L2 only) |
+| MVP-03 | IN PROGRESS | Audio sync, input, scoring refinement; 91 tests must remain passing |
 
 ---
 
@@ -26,14 +27,14 @@
 
 | Agent | Identity | Role | Branch | Worktree | Status | Current Assignment |
 |-------|----------|------|--------|----------|--------|--------------------|
-| 00 | Chief Engineer | Management, integration, releases | agent/project-rhythm-chief | project-rhythm-chief | **Implementing** | Ecosystem audit, governance setup, MVP-02 integration coordination |
-| 01 | Architecture Engineer | Engine architecture, core systems, scenes | agent/project-rhythm-architecture | project-rhythm-architecture | **Awaiting Review** | GameController.gd, GameStateManager.gd ready for integration |
-| 02 | Gameplay Engineer | Tiles, lanes, input, hit registration | agent/project-rhythm-gameplay | project-rhythm-gameplay | **Assigned** | LaneManager/NoteSpawner updates; verify integration |
-| 03 | Audio Engineer | Music sync, timing, charts, calibration | agent/project-rhythm-audio | project-rhythm-audio | **Assigned** | AudioSync pause/resume; chart validation |
-| 04 | UI/UX Engineer | Menus, HUD, results, animations | agent/project-rhythm-ui | project-rhythm-ui | **Assigned** | Complete GameScene.gd (HUD, pause, judgment) |
-| 05 | Systems Engineer | Profiles, progression, persistence | agent/project-rhythm-systems | project-rhythm-systems | **Awaiting Review** | PlayerProfile, SaveManager, SongUnlockManager ready for integration |
-| 06 | QA Engineer | Testing, profiling, touch response | agent/project-rhythm-qa | project-rhythm-qa | **Assigned** | Add gameplay unit tests (lane, spawn, hit, pool) |
-| 07 | Android Engineer | SDK, APK, signing, release | agent/project-rhythm-android | project-rhythm-android | **Blocked** | Export config documented; blocked on SDK (B-01, B-02) |
+| 00 | Chief Engineer | Management, integration, releases | agent/project-rhythm-chief | project-rhythm-chief | **Implementing** | MVP-03 coordination, integration review, management docs |
+| 01 | Architecture Engineer | Engine architecture, core systems, scenes | agent/project-rhythm-architecture | project-rhythm-architecture | **Implementing** | T-MVP-03b Architecture Lifecycle Review + MVP03_ARCHITECTURE_REVIEW.md |
+| 02 | Gameplay Engineer | Tiles, lanes, input, hit registration | agent/project-rhythm-gameplay | project-rhythm-gameplay | **Implementing** | T-MVP-03c LaneManager + NoteSpawner input/judgment refinement |
+| 03 | Audio Engineer | Music sync, timing, charts, calibration | agent/project-rhythm-audio | project-rhythm-audio | **Implementing** | T-MVP-03d AudioSync pause/resume, sync, completion, drift (PRIMARY) |
+| 04 | UI/UX Engineer | Menus, HUD, results, animations | agent/project-rhythm-ui | project-rhythm-ui | **Implementing** | T-MVP-03e GameScene judgment feedback + pause/resume UI sync |
+| 05 | Systems Engineer | Profiles, progression, persistence | agent/project-rhythm-systems | project-rhythm-systems | **Implementing** | T-MVP-03f ScoreManager scoring refinement |
+| 06 | QA Engineer | Testing, profiling, touch response | agent/project-rhythm-qa | project-rhythm-qa | **Testing** | T-MVP-03g QA test suite (audio timing, judgment, combo) |
+| 07 | Android Engineer | SDK, APK, signing, release | agent/project-rhythm-android | project-rhythm-android | **Blocked** | T-MVP-03h Android audio readiness (B-01, B-02, B-04) |
 
 **Status Definitions:**
 - `Idle` — No active task
@@ -57,7 +58,23 @@
 | T-MVP-02e | ScoreManager signals + PlayerProfile integration | Agent 05 | **Awaiting Review** | T-MVP-02a | Systems worktree has PlayerProfile/SaveManager |
 | T-MVP-02f | Gameplay unit tests | Agent 06 | **Assigned** | T-MVP-02a,b | Add lane_manager, note_spawner, game_controller, gameplay_flow tests |
 | T-MVP-02g | Android export readiness | Agent 07 | **Blocked** | B-01, B-02 | Docs complete; needs SDK for validation |
-| T-MVP-02h | Chief coordination + integration review | Agent 00 | **Implementing** | All | Audit done; governance skill created; ready for integration |
+| T-MVP-02h | Chief coordination + integration review | Agent 00 | **Completed** | All | MVP-02.1 complete at 91 passed, 0 failed |
+
+---
+
+## TASK STATUS — MVP-03
+
+| Task ID | Title | Owner | Status | Dependencies | Notes |
+|---------|-------|-------|--------|--------------|-------|
+| T-MVP-03a | Chief coordination + integration | Agent 00 | **Implementing** | None | Dependency breakdown, integration review, consolidated report |
+| T-MVP-03b | Architecture lifecycle review | Agent 01 | **Implementing** | None | Interface consistency audit; MVP03_ARCHITECTURE_REVIEW.md |
+| T-MVP-03c | Gameplay input & judgment refinement | Agent 02 | **Implementing** | None | LaneManager + NoteSpawner duplicate input prevention |
+| T-MVP-03d | Audio synchronization (PRIMARY) | Agent 03 | **Implementing** | None | AudioSync pause/resume, completion, drift |
+| T-MVP-03e | UI/UX judgment feedback | Agent 04 | **Implementing** | None | GameScene feedback + pause/resume UI sync |
+| T-MVP-03f | Scoring refinement | Agent 05 | **Implementing** | None | ScoreManager windows, multipliers, combo, accuracy |
+| T-MVP-03g | QA test suite | Agent 06 | **Testing** | T-MVP-03d/e/f | New tests; must preserve all 91 existing |
+| T-MVP-03h | Android audio readiness | Agent 07 | **Blocked** | B-01, B-02, B-04 | Docs only; no device/SDK |
+
 
 ---
 

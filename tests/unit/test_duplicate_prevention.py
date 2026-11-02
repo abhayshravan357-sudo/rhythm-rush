@@ -1,12 +1,12 @@
-"""Unit tests for duplicate-hit prevention.
+"""Unit tests for MVP-03 duplicate-hit prevention.
 
-A note may be resolved only once; repeated taps on an already-resolved note
-must be no-ops that do not change score, combo, or resolved count.
+Covers: same note hit twice, note resolved by miss cannot be re-hit,
+each note counted exactly once, no duplicate scoring.
 """
 
 from __future__ import annotations
 
-from tests.unit.scoring_engine import ScoringEngine, WINDOW_GOOD
+from tests.unit.mvp03_scoring import ScoringEngine
 
 
 def test_duplicate_hit_on_same_note_is_noop():
@@ -14,24 +14,25 @@ def test_duplicate_hit_on_same_note_is_noop():
     engine.reset([{"timestamp": 1.0, "lane": 0}])
     first = engine.tap(1.0, 0)
     assert first == "PERFECT"
-    score_after_first = engine.score
-    combo_after_first = engine.combo
-    resolved_after_first = engine.resolved_count
+    score_after = engine.score
+    combo_after = engine.combo
+    resolved_after = engine.resolved_count
 
     second = engine.tap(1.0, 0)  # same note, already resolved
     assert second is None
-    assert engine.score == score_after_first
-    assert engine.combo == combo_after_first
-    assert engine.resolved_count == resolved_after_first
+    assert engine.score == score_after
+    assert engine.combo == combo_after
+    assert engine.resolved_count == resolved_after
 
 
 def test_duplicate_hit_after_miss_is_noop():
     engine = ScoringEngine()
     engine.reset([{"timestamp": 1.0, "lane": 0}])
-    engine.tap(1.0 + WINDOW_GOOD + 0.001, 0)  # MISS, resolves the note
+    engine.register_miss(0)
     assert engine.resolved_count == 1
     assert engine.tap(1.0, 0) is None  # already resolved by miss
     assert engine.resolved_count == 1
+    assert engine.miss_count == 1
 
 
 def test_each_note_counted_once_max_score():
@@ -43,15 +44,24 @@ def test_each_note_counted_once_max_score():
         ]
     )
     engine.tap(0.0, 0)
-    engine.tap(0.0, 0)  # second unresolved note at same time/lane
+    engine.tap(0.0, 0)  # second unresolved note at same timestamp/lane
     assert engine.resolved_count == 2
-    assert engine.score == 600  # 2 * 300
+    assert engine.score == 600  # 2 * PERFECT(300)
 
 
-def test_invalid_lane_duplicate_ignored():
+def test_tap_on_already_resolved_note_does_not_change_combo():
+    engine = ScoringEngine()
+    engine.reset([{"timestamp": 1.0, "lane": 0}])
+    engine.tap(1.0, 0)
+    combo_after_first = engine.combo
+    engine.tap(1.0, 0)  # duplicate
+    assert engine.combo == combo_after_first
+
+
+def test_invalid_lane_tap_ignored_no_resolution():
     engine = ScoringEngine()
     engine.reset([{"timestamp": 1.0, "lane": 0}])
     assert engine.tap(1.0, -1) is None
-    assert engine.tap(1.0, 99) is None
+    assert engine.tap(1.0, 4) is None  # LANE_COUNT = 4
     assert engine.resolved_count == 0
     assert engine.score == 0

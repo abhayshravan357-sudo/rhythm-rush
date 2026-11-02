@@ -3,6 +3,13 @@
 #
 # MVP uses 4 lanes; the column math is lane_count-driven so the foundation
 # retains headroom for 6 lanes without code changes.
+#
+# MVP-03 input refinement:
+#   - Duplicate input processing prevention: per-lane tap debounce suppresses
+#     rapid-fire repeat taps on the same lane within DEBOUNCE_SECONDS.
+#   - Simultaneous input: each InputEvent is handled independently, so
+#     multi-touch on different lanes resolves concurrently.
+#   - Input gated by GameStateManager.is_playing(); disabled outside gameplay.
 extends Node2D
 
 signal column_touch_down(lane_index: int)
@@ -19,6 +26,10 @@ var fixed_judgment_y: float = 918.0   # 85 % of 1080
 # Gated by the gameplay state machine (countdown/playing/pause/results).
 # Owned by Agent 01; LaneManager only exposes the control point.
 var input_enabled: bool = false
+
+# MVP-03: per-lane tap debounce to suppress duplicate rapid input.
+const DEBOUNCE_SECONDS: float = 0.08  # 80 ms minimum between same-lane taps
+var _last_tap_time: Dictionary = {}   # lane_index (int) -> last tap time (float)
 
 
 func _ready() -> void:
@@ -80,7 +91,20 @@ func get_total_drop_distance() -> float:
 	return fixed_judgment_y
 
 
-# ── Input handling ─────────────────────────────────────────────────────────────
+# ── Debounce (duplicate input prevention) ─────────────────────────────────────
+
+func _is_tap_debounced(lane_index: int, now: float) -> bool:
+	var last: float = _last_tap_time.get(lane_index, -999.0)
+	if now - last < DEBOUNCE_SECONDS:
+		return true
+	return false
+
+
+func _record_tap(lane_index: int, now: float) -> void:
+	_last_tap_time[lane_index] = now
+
+
+# ── Input handling ────────────────────────────────────────────────────────────
 
 func _input(event: InputEvent) -> void:
 	if not input_enabled:
@@ -98,4 +122,10 @@ func _input(event: InputEvent) -> void:
 func _on_column_touch_down(lane_index: int) -> void:
 	if not GameStateManager.is_playing():
 		return
+	# MVP-03 duplicate prevention: debounce rapid same-lane taps so a single
+	# physical tap cannot register as multiple judgments on the same note.
+	var now: float = Time.get_ticks_msec() / 1000.0
+	if _is_tap_debounced(lane_index, now):
+		return
+	_record_tap(lane_index, now)
 	ScoreManager.process_action_input(lane_index)

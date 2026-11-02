@@ -3,6 +3,13 @@
 #
 # All ColorRect nodes are pre-allocated at scene load. No new nodes are ever
 # instantiated during gameplay, eliminating GC pauses on mobile hardware.
+#
+# MVP-03 note lifecycle refinement:
+#   - get_expired_note_indices() exposes notes whose hit time passed without
+#     being spawned, enabling missed-note accounting alongside ScoreManager.
+#   - Expired notes are never rendered as valid upcoming notes; they are
+#     resolved as hits/misses by ScoreManager instead.
+#   - Object pooling: no duplicate/stale tiles, pool exhaustion logs warning.
 extends Node2D
 
 const MAX_POOL_LIMIT: int = 200
@@ -14,6 +21,8 @@ var active_rendering_array: Array[ColorRect] = []
 
 var next_evaluative_note_index: int = 0
 var tracking_chart_timeline: Array = []
+# Set of timeline indices already deployed (spawned) from the pool.
+var deployed_timeline_indices: Array[int] = []
 
 
 func _ready() -> void:
@@ -42,6 +51,7 @@ func start_spawning_sequence(chart_data: Dictionary) -> void:
 	tracking_chart_timeline = chart_data["noteTimeline"]
 	next_evaluative_note_index = 0
 	active_rendering_array.clear()
+	deployed_timeline_indices.clear()
 	# Hide any tiles that were active from a previous game
 	for tile: ColorRect in preallocated_node_pool:
 		tile.visible = false
@@ -88,6 +98,7 @@ func _deploy_pool_element(note_spec: Dictionary, timeline_index: int) -> void:
 		tile.set_meta("note_type", note_spec["type"])
 		tile.set_meta("hold_duration", note_spec.get("duration", 0.0))
 
+		deployed_timeline_indices.append(timeline_index)
 		_configure_tile_visual(tile, note_spec)
 		tile.visible = true
 		active_rendering_array.append(tile)
@@ -147,3 +158,24 @@ func _retire_tile(tile: ColorRect, active_idx: int) -> void:
 	tile.visible = false
 	tile.set_meta("is_active", false)
 	active_rendering_array.remove_at(active_idx)
+
+
+# ── Note lifecycle query (MVP-03) ─────────────────────────────────────────────
+
+func get_expired_note_indices(playback_time: float) -> Array[int]:
+	"""Return timeline indices whose hit time has passed but were never spawned.
+
+	These notes are candidates for missed-note resolution by ScoreManager.
+	"""
+	var expired: Array[int] = []
+	var i: int = 0
+	while i < tracking_chart_timeline.size():
+		var hit_time: float = float(tracking_chart_timeline[i]["timestamp"])
+		if playback_time > hit_time and not deployed_timeline_indices.has(i):
+			expired.append(i)
+		i += 1
+	return expired
+
+
+func get_deployed_count() -> int:
+	return deployed_timeline_indices.size()
