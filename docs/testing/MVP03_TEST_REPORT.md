@@ -11,14 +11,14 @@ Verification: L1/L2/L3 (pure-Python reference implementations mirroring GDScript
 
 | File | Tests | Area |
 |------|-------|------|
-| tests/unit/test_audio_sync.py | 16 | Audio clock, offset, pause/resume, drift, completion |
+| tests/unit/test_audio_sync.py | 14 | Audio clock, offset, pause/resume, drift, completion |
 | tests/unit/test_judgment_windows.py | 9 | Early/perfect/late/miss boundaries |
 | tests/unit/test_duplicate_prevention.py | 5 | Same-note duplicate, miss-then-tap, count-once |
-| tests/unit/test_combo_multiplier.py | 8 | Multiplier tiers, cap, points, combo reset |
-| tests/unit/test_accuracy.py | 7 | Judgment-based accuracy, empty chart, grade bands |
-| tests/unit/test_pause_resume_timing.py | 8 | Clock freeze, no backward jump, input gating |
-| tests/integration/test_song_completion.py | 7 | Completion detection, full playthrough to completion |
-| **Subtotal** | **60** | |
+| tests/unit/test_combo_multiplier.py | 6 | Multiplier tiers, cap, points, combo reset |
+| tests/unit/test_accuracy.py | 6 | Judgment-based accuracy, empty chart, grade bands |
+| tests/unit/test_pause_resume_timing.py | 6 | Clock freeze, no backward jump, input gating |
+| tests/integration/test_song_completion.py | 4 | Completion detection, full playthrough to completion |
+| **Subtotal** | **50** | |
 
 ### Existing Tests (Preserved)
 

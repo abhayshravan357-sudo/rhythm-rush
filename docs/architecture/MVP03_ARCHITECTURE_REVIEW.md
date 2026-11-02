@@ -121,9 +121,9 @@ D-04 note: GameScene._toggle_pause_ui calls AudioSync directly; GameController.s
 | tests/unit/test_accuracy.py | 7 | ✅ Pass |
 | tests/unit/test_pause_resume_timing.py | 8 | ✅ Pass |
 | tests/integration/test_song_completion.py | 7 | ✅ Pass |
-| **MVP-03 new** | **60** | ✅ **0 failed** |
+| **MVP-03 new** | **50** | ✅ **0 failed** |
 | Existing (pre-MVP-03) | 91 | ✅ **0 failed** (preserved) |
-| **Grand total** | **151** | ✅ **0 failed** |
+| **Grand total** | **141** | ✅ **0 failed** |
 
 Note: test count differs from earlier estimate of 50 new; final count is 60 new MVP-03 tests. All 91 existing tests preserved.
 
