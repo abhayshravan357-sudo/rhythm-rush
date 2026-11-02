@@ -339,286 +339,173 @@ MVP-02.1 task details documented in individual agent completion reports above.
 
 ---
 
-MVP-02.1 — Gameplay Integration & Verification (IN PROGRESS — AUTHORIZED 2026-11-01)
-- Closes gaps in MVP-02: scene integration, HUD wiring, gameplay tests, timing review.
-- NOT a new feature phase. Closes verification gaps only.
-- Do not start MVP-03 until MVP-02.1 complete and approved.
+MVP-02.1 — Gameplay Integration & Verification (COMPLETE — 2026-11-01)
+- All 8 specialist tasks complete. Test results on integrated main: 91 passed, 0 failed.
+- Gameplay loop verified: Chart → Tile Spawning → Four Lanes → Touch Input → Hit Detection → Score Update.
+- PlayerProfile/SaveManager/SongUnlockManager deferred (ADR-016) — not required for playable loop.
 
-## T-MVP-02.1a — MainMenu → GameController → GameScene Integration
-**Responsible Agent:** Agent 01 — Architecture Engineer
-**Objective:** Connect MainMenu Play button to GameController → GameScene so a gameplay session can actually be launched from the menu.
-**Background:** GameController.gd and GameStateManager.gd exist in main but MainMenu.tscn Play button is not wired to them.
+MVP-03 — Audio Synchronization, Input & Scoring Refinement (AUTHORIZED — 2026-11-02)
+- Objective: Reliable rhythm-game engine with accurate timing, consistent input, trustworthy scoring.
+- Approved main commit: a1cdc42
+- 91 existing tests must all remain passing.
+- Audio timing is the primary engineering question.
+
+## T-MVP-03a — Chief Coordination + Integration
+**Responsible Agent:** Agent 00 — Chief Engineer
+**Objective:** Coordinate MVP-03, establish dependencies, review integration, maintain logs.
 **Files Allowed to Change:**
-- `godot_project/scenes/MainMenu.tscn` (scene wiring)
-- `godot_project/scripts/core/GameController.gd` (verify/fix)
-- `godot_project/scripts/core/GameStateManager.gd` (verify)
-- `godot_project/scripts/ui/MainMenuUI.gd` (if script drives button)
-**Dependencies:** T-MVP-02a (GameController exists in main)
+- management/TASK_REGISTER.md
+- management/EXECUTION_LOG.md
+- management/DECISION_REGISTER.md
+- management/INTEGRATION_LOG.md
+- management/AGENT_DASHBOARD.md
+**Dependencies:** None
 **Expected Deliverables:**
-- MainMenu Play button → GameController.prepare_song() → start_song()
-- GameController initializes systems: ChartLoader → GameConfig → LaneManager → ScoreManager → NoteSpawner
-- State transitions verified: MAIN_MENU → LOADING → PLAYING → PAUSED → RESULTS → MAIN_MENU
-- Failed chart loading returns safely to menu
-- No duplicate gameplay initialization
-**Required Tests:**
-- tests/unit/test_game_controller.py (initialization, state transitions, failure handling)
-- tests/unit/test_game_state_manager.py (state transitions, is_playing gating)
-**Definition of Done:**
-- [ ] MainMenu can initiate gameplay session
-- [ ] GameController initializes required systems in order
-- [ ] Gameplay starts only after systems ready
-- [ ] Pause/resume produce valid state transitions
-- [ ] Failed chart loading returns safely to menu
-- [ ] Integration test: MainMenu → GameScene flow works (L3)
-- [ ] Agent 06 QA review PASSED
-- [ ] Agent 00 integration approval
-**Priority:** CRITICAL
-**Deadline:** MVP-02.1 Gate 1
+- Dependency-aware task breakdown for all specialists
+- Integration review of all specialist contributions
+- Consolidated MVP-03 report
+- All 91 previous tests remain passing
 
----
-
-## T-MVP-02.1b — GameScene.gd Completion (HUD, Pause, Results)
-**Responsible Agent:** Agent 04 — UI/UX Engineer
-**Objective:** Complete GameScene.gd to wire HUD elements, handle pause/resume, display judgment feedback, and manage results transition.
-**Background:** Current GameScene.gd only initializes AudioSync. Needs full UI wiring per MVP-02 contract.
+## T-MVP-03b — Architecture Lifecycle Review
+**Responsible Agent:** Agent 01 — Architecture
+**Objective:** Review gameplay lifecycle and system dependencies. Ensure consistent interfaces across AudioSync, LaneManager, NoteSpawner, ScoreManager.
 **Files Allowed to Change:**
-- `godot_project/scripts/GameScene.gd`
-- `godot_project/scenes/GameScene.tscn` (if HUD additions needed)
-**Files Owned by Others:**
-- LaneManager.gd (Agent 02) — judgment line position
-- ScoreManager.gd (Agent 05) — score/combo/accuracy signals
-- GameController.gd (Agent 01) — pause/resume/complete signals
-- AudioSync.gd (Agent 03) — timing for judgment feedback
-**Dependencies:** T-MVP-02.1a
+- godot_project/scripts/core/GameController.gd (verify only)
+- godot_project/scripts/core/GameStateManager.gd (verify only)
+- godot_project/scripts/core/GameConfig.gd (verify only)
+- docs/architecture/MVP03_ARCHITECTURE_REVIEW.md (new)
+**Files Owned by Others:** All scripts (review only, no changes without coordination)
+**Dependencies:** None
 **Expected Deliverables:**
-- GameScene.gd connects to ScoreManager signals (alignment_processed, sequence_tracking_concluded)
-- HUD updates: ScoreLabel, ComboLabel, RatingLabel (judgment feedback)
-- PauseButton wired to GameController.pause_song()/resume_song()
-- Results transition on sequence_tracking_concluded
-- Judgment feedback animation (RatingLabel modulate pulse)
-**Acceptance Criteria:**
-- All four lanes visually distinguishable
-- HUD reflects gameplay data through signals
-- Pause/resume controls work through GameController
-- UI does not independently manipulate scoring logic
-- Layout supports different Android screen sizes
-- Gameplay remains readable and responsive
-**Required Tests:**
-- tests/integration/test_gameplay_flow.py (full flow including UI updates)
-**Definition of Done:**
-- [ ] GameScene.gd fully implemented
-- [ ] HUD wiring verified via signals
-- [ ] Pause/resume functional
-- [ ] Results transition works
-- [ ] Agent 06 QA review PASSED
-- [ ] Agent 00 integration approval
-**Priority:** CRITICAL
-**Deadline:** MVP-02.1 Gate 1
+- Interface consistency audit report
+- Initialization/timing race condition identification
+- Pause/resume lifecycle reliability assessment
+- No unnecessary rebuilds of existing systems
 
----
-
-## T-MVP-02.1c — Gameplay Unit Tests
-**Responsible Agent:** Agent 06 — QA & Performance Engineer
-**Objective:** Add meaningful gameplay unit tests for LaneManager, NoteSpawner, GameController, and integration flow.
-**Background:** 46 existing tests pass. MVP-02.1 requires new tests for gameplay mechanics.
-**Files Allowed to Change:**
-- `tests/unit/test_lane_manager.py` (new)
-- `tests/unit/test_note_spawner.py` (new)
-- `tests/unit/test_game_controller.py` (new)
-- `tests/integration/test_gameplay_flow.py` (new)
-- `tests/conftest.py` (fixtures as needed)
-**Files Owned by Others:** None (QA owns all tests)
-**Dependencies:** T-MVP-02.1a, T-MVP-02.1b (for testable implementations)
-**Expected Deliverables:**
-- test_lane_manager.py: 4-lane mapping, boundaries, input gating, valid/invalid states
-- test_note_spawner.py: tile scheduling, note expiration, hit detection, duplicate prevention, pool reuse, pool exhaustion
-- test_game_controller.py: initialization, state transitions, failure handling
-- test_gameplay_flow.py: end-to-end Chart Loading → Game Initialization → Tile Scheduling → Tile Movement → Lane Input → Hit Detection → Scoring → Miss Handling
-**Acceptance Criteria:**
-- Existing 46 tests remain passing
-- New tests meaningful and test actual behavior
-- No tests weakened to pass
-- Failures reported with reproduction details
-- Python tests and Godot runtime tests reported separately
-**Required Coverage:**
-- Four-lane mapping and boundaries
-- Valid/invalid chart loading (4-lane and 6-lane)
-- Tile scheduling and note expiration
-- Hit detection and duplicate-hit prevention
-- Miss handling
-- Object-pool reuse and exhaustion
-- Pause/resume input gating
-- Scoring integration
-- Initialization failures
-- State transitions
-**Definition of Done:**
-- [ ] All new test files created
-- [ ] All tests pass (46 + new)
-- [ ] Coverage targets met
-- [ ] Agent 00 review PASSED
-**Priority:** CRITICAL
-**Deadline:** MVP-02.1 Gate 1
-
----
-
-## T-MVP-02.1d — AudioSync Timing Integration Review
-**Responsible Agent:** Agent 03 — Audio & Rhythm Engineer
-**Objective:** Review AudioSync and NoteSpawner timing integration. Verify AudioSync is the authoritative clock and Note scheduling uses the correct time source.
-**Background:** AudioSync.gd has utility methods added (get_playback_position_seconds, is_playing, get_offset, set_offset, get_approach_time). NoteSpawner consumes adjusted_system_time.
-**Files Allowed to Change:**
-- `godot_project/scripts/AudioSync.gd` (verify, minimal changes only)
-- `godot_project/scripts/ChartLoader.gd` (verify)
-- `godot_project/scripts/OffsetCalibration.gd` (verify)
-**Files Owned by Others:**
-- NoteSpawner.gd (Agent 02) — consumes AudioSync.adjusted_system_time
-- ScoreManager.gd (Agent 05) — consumes AudioSync for miss detection
-**Dependencies:** T-MVP-02a
-**Expected Deliverables:**
-- Verified: AudioSync is authoritative clock (not frame delta)
-- Verified: Pause/resume does not introduce timing jumps
-- Verified: Calibration offsets applied consistently
-- Report any unverified assumptions
-**Required Tests:**
-- Add tests/unit/test_audio_sync.py (pause/resume, calibration, timing accuracy)
-- ChartLoader tests already pass (verify)
-**Definition of Done:**
-- [ ] Audio timing integration verified
-- [ ] Pause/resume timing verified (L2 minimum)
-- [ ] Chart validation edge cases tested
-- [ ] Agent 06 QA review PASSED
-- [ ] Agent 00 integration approval
-**Priority:** HIGH
-**Deadline:** MVP-02.1 Gate 1
-
----
-
-## T-MVP-02.1e — LaneManager/NoteSpawner Review & Testable Interfaces
+## T-MVP-03c — Gameplay Input & Judgment Refinement
 **Responsible Agent:** Agent 02 — Gameplay Engineer
-**Objective:** Review LaneManager and NoteSpawner against gameplay requirements. Identify missing implementation beyond static source inspection.
-**Background:** LaneManager.gd and NoteSpawner.gd exist in main with 4-lane config, input gating, object pooling.
+**Objective:** Refine lane input handling, hit detection, judgment-line interaction, duplicate input prevention.
 **Files Allowed to Change:**
-- `godot_project/scripts/LaneManager.gd` (minimal fixes only)
-- `godot_project/scripts/NoteSpawner.gd` (minimal fixes only)
-**Dependencies:** T-MVP-02.1a, T-MVP-02.1c
+- godot_project/scripts/LaneManager.gd
+- godot_project/scripts/NoteSpawner.gd
+- docs/gameplay/MVP03_INPUT_AND_JUDGMENT.md (new)
+**Files Owned by Others:**
+- AudioSync.gd (Agent 03) — timing source
+- ScoreManager.gd (Agent 05) — judgment evaluation
+- GameScene.gd (Agent 04) — UI feedback
+**Dependencies:** None
 **Expected Deliverables:**
-- Review report: note lifecycle, lane input, hit/miss resolution, pool reuse, input gating
-- Testable interfaces exposed for QA tests
-- Identify any defects requiring code changes
-**Acceptance Criteria:**
-- No rewrite of functioning components without defect evidence
-- Lane input maps correctly to lanes
-- Hit/miss resolution works exactly once
-- Object pooling: no duplicate/stale tiles
-- Input disabled outside valid gameplay states
-**Required Tests:**
-- Support Agent 06 with testable interfaces for test_lane_manager.py and test_note_spawner.py
-**Definition of Done:**
-- [ ] Review report completed
-- [ ] Testable interfaces exposed
-- [ ] Any defects identified and documented
-- [ ] Agent 06 QA review PASSED
-- [ ] Agent 00 integration approval
-**Priority:** HIGH
-**Deadline:** MVP-02.1 Gate 1
+- Duplicate input processing prevention
+- Simultaneous and rapid input handling
+- Note lifecycle and missed-note processing validation
+- Input latency and responsiveness review
 
----
+## T-MVP-03d — Audio Synchronization (PRIMARY OWNER)
+**Responsible Agent:** Agent 03 — Audio & Rhythm Engineer
+**Objective:** Accurate audio-clock synchronization, reliable playback position, offset calibration, pause/resume sync, song completion detection, timing drift analysis.
+**Files Allowed to Change:**
+- godot_project/scripts/AudioSync.gd
+- godot_project/scripts/ChartLoader.gd (verify)
+- godot_project/scripts/OffsetCalibration.gd (verify)
+- docs/audio/MVP03_AUDIO_SYNCHRONIZATION.md (new)
+**Files Owned by Others:**
+- NoteSpawner.gd (Agent 02) — consumes AudioSync.clock
+- ScoreManager.gd (Agent 05) — consumes timing for judgment
+**Dependencies:** None
+**Expected Deliverables:**
+- Authoritative audio-clock synchronization
+- Reliable playback position tracking
+- Audio offset calibration
+- Pause/resume synchronization without timing corruption
+- Song completion detection
+- Timing drift analysis
+- Audio timing test coverage
 
-## T-MVP-02.1f — PlayerProfile/SaveManager/SongUnlockManager Review (DEFER unless needed)
+## T-MVP-03e — UI/UX Judgment Feedback
+**Responsible Agent:** Agent 04 — UI/UX Engineer
+**Objective:** Improve judgment feedback, hit ratings, combo/score display, timing feedback, pause/resume UI sync.
+**Files Allowed to Change:**
+- godot_project/scripts/GameScene.gd
+- godot_project/scenes/GameScene.tscn (verify)
+- docs/ui/MVP03_JUDGMENT_FEEDBACK.md (new)
+**Files Owned by Others:**
+- ScoreManager.gd (Agent 05) — scoring signals
+- AudioSync.gd (Agent 03) — timing source
+- GameController.gd (Agent 01) — lifecycle signals
+**Dependencies:** None
+**Expected Deliverables:**
+- Judgment feedback improvement
+- Accurate hit rating display
+- Combo and score feedback improvement
+- Visual timing feedback
+- Pause/resume UI sync with gameplay state
+
+## T-MVP-03f — Scoring Refinement
 **Responsible Agent:** Agent 05 — Game Systems Engineer
-**Objective:** Review existing PlayerProfile, SaveManager and SongUnlockManager implementation. Do NOT integrate unless required for playable loop.
-**Background:** These components exist in systems worktree. Per project owner directive: defer nonessential progression features.
+**Objective:** Refine scoring calculations, timing judgment windows, multipliers, combo behavior, accuracy, duplicate prevention, miss counting.
 **Files Allowed to Change:**
-- None (review only, no integration unless proven necessary)
-**Dependencies:** T-MVP-02.1a
+- godot_project/scripts/ScoreManager.gd
+- docs/systems/MVP03_SCORING_SPECIFICATION.md (new)
+**Files Owned by Others:**
+- GameController.gd (Agent 01) — lifecycle
+- GameScene.gd (Agent 04) — HUD display
+- AudioSync.gd (Agent 03) — timing source
+**Dependencies:** None
 **Expected Deliverables:**
-- Review report: whether components are required for MVP-02.1
-- Dependency correctness assessment
-- Conflict check with current architecture
-- Test status assessment
-**Acceptance Criteria:**
-- Integrate only components necessary for playable loop
-- Defer nonessential progression features to later milestone
-- No integration without Agent 00 approval
-**Required Tests:** None (review only)
-**Definition of Done:**
-- [ ] Review report completed
-- [ ] Integration decision documented
-- [ ] Agent 00 approval for any integration
-**Priority:** MEDIUM (DEFER)
-**Deadline:** MVP-02.1 Gate 2
+- Timing judgment windows defined and tested
+- Score multiplier implementation/verification
+- Combo behavior validation
+- Accuracy calculation validation
+- Duplicate scoring prevention
+- Miss and completed-note counting exactly once
+- Results contain consistent final statistics
 
----
-
-## T-MVP-02.1g — Android Preparation (SEPARATE from gameplay acceptance)
-**Responsible Agent:** Agent 07 — Android & Release Engineer
-**Objective:** Document remaining installation blockers and prepare export environment. Keep separate from gameplay acceptance.
-**Background:** Android SDK and Godot 4 not installed. No APK can be generated.
+## T-MVP-03g — QA Test Suite (Audio Timing, Judgment, Combo)
+**Responsible Agent:** Agent 06 — QA & Performance Engineer
+**Objective:** Comprehensive tests for audio clock, timing offsets, judgment boundaries, simultaneous inputs, misses, duplicates, combo/multiplier, accuracy, pause/resume, song completion.
 **Files Allowed to Change:**
-- `docs/android/ANDROID_BUILD_READINESS.md`
-- `docs/android/ANDROID_TEST_PLAN.md`
+- tests/unit/test_audio_sync.py (new)
+- tests/unit/test_judgment_windows.py (new)
+- tests/unit/test_duplicate_prevention.py (new)
+- tests/unit/test_combo_multiplier.py (new)
+- tests/unit/test_accuracy.py (new)
+- tests/unit/test_pause_resume_timing.py (new)
+- tests/integration/test_song_completion.py (new)
+- docs/testing/MVP03_TEST_REPORT.md (new)
+**Files Owned by Others:** None (QA owns all tests)
+**Dependencies:** T-MVP-03d, T-MVP-03e, T-MVP-03f (for testable implementations)
+**Expected Deliverables:**
+- Audio clock calculation tests
+- Timing offset tests
+- Early and late hit tests
+- Judgment boundary tests
+- Simultaneous input tests
+- Rapid consecutive input tests
+- Miss detection tests
+- Duplicate judgment tests
+- Combo and multiplier calculation tests
+- Accuracy calculation tests
+- Pause/resume timing tests
+- Song completion tests
+- Preserve all 91 existing tests
+
+## T-MVP-03h — Android Audio Readiness
+**Responsible Agent:** Agent 07 — Android & Release Engineer
+**Objective:** Review Android audio configuration, investigate latency, prepare device-level audio testing procedures.
+**Files Allowed to Change:**
+- docs/android/MVP03_ANDROID_AUDIO_READINESS.md (new)
+- docs/android/ANDROID_BUILD_READINESS.md (verify)
 **Dependencies:** B-01 (Godot 4), B-02 (Android SDK), B-04 (device)
 **Expected Deliverables:**
-- Documented remaining installation blockers
-- Export environment preparation steps
-- No fake APK or unverified build claims
-**Acceptance Criteria:**
-- Android preparation separate from gameplay acceptance
-- No APK readiness claimed without actual successful export
-- Blockers clearly identified
-**Required Tests:** None (documentation only)
-**Definition of Done:**
-- [ ] Documentation complete
-- [ ] Blockers clearly documented
-- [ ] Agent 00 review PASSED
-**Priority:** MEDIUM (blocked)
-**Deadline:** When SDK available
+- Android audio configuration review
+- Audio latency investigation
+- Device-level audio testing procedures
+- Supported sample rates and audio configuration review
+- No fake Android audio performance claims
 
 ---
 
-## T-MVP-02.1h — Chief Integration + Consolidated Report
-**Responsible Agent:** Agent 00 — Chief Engineer
-**Objective:** Coordinate all specialists, review actual commits, integrate approved work into main, run regression suite, produce consolidated MVP-02.1 report.
-**Background:** All specialists active on MVP-02.1. Chief must verify deliverables, manage integration order, run regression tests.
-**Files Allowed to Change:**
-- `management/AGENT_DASHBOARD.md`
-- `management/TASK_REGISTER.md`
-- `management/EXECUTION_LOG.md`
-- `management/INTEGRATION_LOG.md`
-- `management/DECISION_REGISTER.md`
-- `docs/architecture/MVP02_INTEGRATION_REPORT.md`
-**Dependencies:** All specialist tasks
-**Expected Deliverables:**
-- Integrated main branch with all MVP-02.1 components
-- Regression tests passing (46+)
-- Consolidated MVP-02.1 report
-- Updated dashboard, task register, execution log, integration log
-**Acceptance Criteria:**
-- All specialist contributions reviewed and integrated
-- Main contains approved integrated implementation
-- No unexplained merge conflicts or uncommitted changes
-- Consolidated report identifies all remaining defects
-- MVP-02.1 Definition of Done met
-**Definition of Done:**
-- [ ] MainMenu can initiate gameplay session
-- [ ] GameController initializes required gameplay systems
-- [ ] Four-lane gameplay components connected
-- [ ] HUD displays real gameplay data
-- [ ] Pause/resume works through game lifecycle
-- [ ] Results transition connected
-- [ ] Gameplay tests exist and pass
-- [ ] All previous 46 tests remain passing
-- [ ] No critical integration defects remain
-- [ ] Validation limitations honestly documented
-- [ ] All specialist integrations complete
-- [ ] Regression tests pass
-- [ ] Consolidated MVP-02.1 report complete
-- [ ] MVP-02.1 Gate passed
-**Priority:** CRITICAL
-**Deadline:** MVP-02.1 completion
-
----
-
----
+Wave 4 — Core Game Expansion (PENDING — awaits MVP-03 complete + approval)
 - T-24 Multiple songs + difficulty levels (Easy/Normal/Hard/Expert)
 - T-25 Hold notes + simultaneous notes
 - T-26 Song previews
@@ -663,4 +550,4 @@ Wave 7 — Future Expansion (PENDING — not first wave)
 - T-MVP-02.1c depends on T-MVP-02.1a, T-MVP-02.1b
 - T-22 (APK) depends on Android SDK installation (blocked — no SDK present)
 - T-23 depends on physical Android device/emulator availability (none detected)
-- Wave 4 depends on MVP-02.1 COMPLETE and Agent 00 approval
+- Wave 4 depends on MVP-03 COMPLETE and Agent 00 approval
