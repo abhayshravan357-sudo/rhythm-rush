@@ -27,8 +27,8 @@ func _ready() -> void:
 
 
 func _on_play_pressed() -> void:
-	_status_label.text = "Loading song library..."
-	go_to_song_selection()
+	_status_label.text = "Starting game..."
+	go_to_gameplay("example_track", "res://charts/example_chart.json")
 
 
 func _on_song_library_pressed() -> void:
