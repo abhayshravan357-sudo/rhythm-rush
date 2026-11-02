@@ -344,11 +344,12 @@ MVP-02.1 — Gameplay Integration & Verification (COMPLETE — 2026-11-01)
 - Gameplay loop verified: Chart → Tile Spawning → Four Lanes → Touch Input → Hit Detection → Score Update.
 - PlayerProfile/SaveManager/SongUnlockManager deferred (ADR-016) — not required for playable loop.
 
-MVP-03 — Audio Synchronization, Input & Scoring Refinement (IN PROGRESS — 2026-11-02)
-- Objective: Reliable rhythm-game engine with accurate timing, consistent input, trustworthy scoring.
-- Approved main commit: a1cdc42
-- 91 existing tests must all remain passing.
-- Audio timing is the primary engineering question.
+MVP-03 — Audio Synchronization, Input & Scoring Refinement (COMPLETE — 2026-11-02)
+- All 8 specialist tasks complete. Test results on integrated main: 141 passed, 0 failed.
+- Authoritative audio-clock synchronization, deterministic input handling,
+  reliable judgment windows, consistent scoring calculations.
+- Deferred per project owner: PlayerProfile, SaveManager, SongUnlockManager
+  NOT integrated unless required for playable loop (ADR-016).
 
 ## T-MVP-03a — Chief Coordination + Integration
 **Responsible Agent:** Agent 00 — Chief Engineer
