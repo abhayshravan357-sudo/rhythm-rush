@@ -37,6 +37,11 @@ var _lane_flash_until: Dictionary = {}
 const DEBOUNCE_SECONDS: float = 0.08  # 80 ms minimum between same-lane taps
 var _last_tap_time: Dictionary = {}   # lane_index (int) -> last tap time (float)
 
+# MVP-04: touch deadzone radius in pixels. Taps within this distance of a
+# lane boundary are rejected to prevent accidental adjacent-lane input.
+const TOUCH_DEADZONE_RADIUS: float = 8.0
+var touch_deadzone_radius: float = TOUCH_DEADZONE_RADIUS
+
 
 func _ready() -> void:
 	lane_count = GameConfig.normalize_lane_count(lane_count)
@@ -88,6 +93,14 @@ func _draw() -> void:
 	draw_rect(Rect2(playfield_left, playfield_top, playfield_width, 2.0), Color(0.38, 0.73, 1.0, 0.75), true)
 	draw_rect(Rect2(playfield_left, field_bottom - 2.0, playfield_width, 2.0), Color(0.38, 0.73, 1.0, 0.65), true)
 
+	# HOLD note lane zones: semi-transparent bars above each lane receptor
+	# so players can see where sustained input is expected.
+	for lane in range(get_lane_count()):
+		var hold_rect := get_lane_hold_zone_rect(lane)
+		if hold_rect.size.x > 0.0 and hold_rect.size.y > 0.0:
+			draw_rect(hold_rect, Color(0.38, 0.73, 1.0, 0.08), true)
+			draw_rect(hold_rect, Color(0.38, 0.73, 1.0, 0.35), false, 1.0)
+
 
 func _process(_delta: float) -> void:
 	if not _lane_flash_until.is_empty():
@@ -136,6 +149,43 @@ func get_lane_index_for_x(screen_x: float) -> int:
 
 func get_judgment_line_y() -> float:
 	return fixed_judgment_y
+
+func get_lane_hold_zone_rect(lane_index: int) -> Rect2:
+	"""Return the hold note zone rectangle for a lane.
+
+	The zone sits directly above the judgment line receptor and spans
+	the lane width with a height proportional to a typical hold duration
+	(1.0 second at the default approach time).
+	"""
+	var lane_idx: int = clampi(lane_index, 0, get_lane_count() - 1)
+	var lane_x: float = playfield_left + float(lane_idx) * column_width_step
+	var lane_w: float = column_width_step
+	var hold_h: float = maxf(60.0, (1.0 / AudioSync.APPROACH_TIME) * get_total_drop_distance() * 0.4)
+	return Rect2(lane_x + 2.0, fixed_judgment_y - hold_h, lane_w - 4.0, hold_h)
+
+func set_touch_deadzone(radius_pixels: float) -> void:
+	touch_deadzone_radius = max(0.0, float(radius_pixels))
+
+func get_touch_deadzone_radius() -> float:
+	return touch_deadzone_radius
+
+func is_tap_in_deadzone(screen_x: float, lane_index: int) -> bool:
+	"""Return true if a tap at screen_x is within the deadzone of lane_index boundaries.
+
+	Deadzone is the region within touch_deadzone_radius pixels of either lane edge.
+	Taps here are ambiguous and should be rejected to avoid accidental adjacent-lane
+	input on mobile touchscreens.
+	"""
+	if touch_deadzone_radius <= 0.0:
+		return false
+	var lane_x: float = playfield_left + float(lane_index) * column_width_step
+	var left_edge: float = lane_x + 2.0
+	var right_edge: float = lane_x + column_width_step - 2.0
+	if screen_x < left_edge + touch_deadzone_radius and screen_x > left_edge - touch_deadzone_radius:
+		return true
+	if screen_x < right_edge + touch_deadzone_radius and screen_x > right_edge - touch_deadzone_radius:
+		return true
+	return false
 
 
 func get_total_drop_distance() -> float:
