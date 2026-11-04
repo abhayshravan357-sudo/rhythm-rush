@@ -1,67 +1,74 @@
 {
   "worktrees": {
     "wt-1793461034761-1": {
-      "branch": "agent/project-rhythm-architecture-2",
+      "branch": "c-016-autoload-graph",
       "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-architecture-2-0caa8a41ee27ecce",
       "parentBranch": "main",
       "createdAt": "2026-10-31T15:37:14.761Z",
       "remote": "origin",
       "label": "agent 01 architecture",
-      "branchOwned": true
+      "branchOwned": true,
+      "originalBranch": "agent/project-rhythm-architecture-2"
     },
     "wt-1793461035555-2": {
-      "branch": "agent/project-rhythm-gameplay-2",
+      "branch": "c-017-simultaneous-chord",
       "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-gameplay-2-8c945a51f35af626",
       "parentBranch": "main",
       "createdAt": "2026-10-31T15:37:15.555Z",
       "remote": "origin",
       "label": "agent 02 gameplay",
-      "branchOwned": true
+      "branchOwned": true,
+      "originalBranch": "agent/project-rhythm-gameplay-2"
     },
     "wt-1793461036152-3": {
-      "branch": "agent/project-rhythm-audio-2",
+      "branch": "c-018-drift-compensation",
       "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-audio-2-37415d8b4134d847",
       "parentBranch": "main",
       "createdAt": "2026-10-31T15:37:16.152Z",
       "remote": "origin",
       "label": "agent 03 audio",
-      "branchOwned": true
+      "branchOwned": true,
+      "originalBranch": "agent/project-rhythm-audio-2"
     },
     "wt-1793461037546-4": {
-      "branch": "agent/project-rhythm-ui-2",
+      "branch": "c-019-judgment-feedback",
       "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-ui-2-1697a689b76ebae4",
       "parentBranch": "main",
       "createdAt": "2026-10-31T15:37:17.546Z",
       "remote": "origin",
       "label": "agent 04 ui",
-      "branchOwned": true
+      "branchOwned": true,
+      "originalBranch": "agent/project-rhythm-ui-2"
     },
     "wt-1793461038832-5": {
-      "branch": "agent/project-rhythm-systems-2",
+      "branch": "c-021-song-unlock",
       "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-systems-2-b18951fb28acfb45",
       "parentBranch": "main",
       "createdAt": "2026-10-31T15:37:18.832Z",
       "remote": "origin",
       "label": "agent 05 systems",
-      "branchOwned": true
+      "branchOwned": true,
+      "originalBranch": "agent/project-rhythm-systems-2"
     },
     "wt-1793461040677-6": {
-      "branch": "agent/project-rhythm-qa-2",
+      "branch": "c-023-pool-performance",
       "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-qa-2-07393b6d766b11cd",
       "parentBranch": "main",
       "createdAt": "2026-10-31T15:37:20.677Z",
       "remote": "origin",
       "label": "agent 06 qa",
-      "branchOwned": true
+      "branchOwned": true,
+      "originalBranch": "agent/project-rhythm-qa-2"
     },
     "wt-1793461041439-7": {
-      "branch": "agent/project-rhythm-android-2",
+      "branch": "c-025-permissions-audit",
       "path": "/home/abhaysawant/hexa-rhythm/.kilo/worktrees/agent-project-rhythm-android-2-62636c98feda9f1a",
       "parentBranch": "main",
       "createdAt": "2026-10-31T15:37:21.439Z",
       "remote": "origin",
       "label": "agent 07 android",
-      "branchOwned": true
+      "branchOwned": true,
+      "originalBranch": "agent/project-rhythm-android-2"
     }
   },
   "sessions": {
@@ -100,7 +107,8 @@
   },
   "tabOrder": {
     "local": [
-      "pending:ce5a6555-f3ed-482d-a242-8080c1b31c11"
+      "pending:ce5a6555-f3ed-482d-a242-8080c1b31c11",
+      "ses_e6e1ade1cffeZS9qGcHXjMPudi"
     ]
   },
   "worktreeOrder": [
