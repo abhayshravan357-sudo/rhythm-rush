@@ -71,7 +71,7 @@ func reset_scoring_matrix(chart_payload: Dictionary) -> void:
 
 func get_multiplier() -> int:
 	"""Combo-based score multiplier. Tiers: 1x/2x/3x/4x, capped at MAX_MULTIPLIER."""
-	var tier: int = 1 + (operational_combo_counter // COMBO_TIER_STEP)
+	var tier: int = 1 + int(operational_combo_counter / COMBO_TIER_STEP)
 	return clampi(tier, 1, MAX_MULTIPLIER)
 
 
@@ -104,6 +104,22 @@ func get_grade() -> String:
 
 func get_final_score() -> int:
 	return absolute_accumulated_score
+
+
+func get_score() -> int:
+	return absolute_accumulated_score
+
+
+func get_perfect_count() -> int:
+	return perfect_count
+
+
+func get_good_count() -> int:
+	return good_count
+
+
+func get_miss_count() -> int:
+	return miss_count
 
 
 func get_max_combo() -> int:

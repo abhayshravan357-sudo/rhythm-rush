@@ -12,10 +12,14 @@
 #   - Object pooling: no duplicate/stale tiles, pool exhaustion logs warning.
 extends Node2D
 
+const VisualTokens = preload("res://scripts/ui/VisualTokens.gd")
+
 const MAX_POOL_LIMIT: int = 200
 
-var preallocated_node_pool: Array[ColorRect] = []
-var active_rendering_array: Array[ColorRect] = []
+var preallocated_node_pool: Array[Panel] = []
+var active_rendering_array: Array[Panel] = []
+var _tap_style: StyleBoxFlat
+var _hold_style: StyleBoxFlat
 
 @onready var lane_manager: Node2D = $"../LaneManager"
 
@@ -27,15 +31,27 @@ var deployed_timeline_indices: Array[int] = []
 
 func _ready() -> void:
 	preallocate_memory_pool()
+	get_viewport().size_changed.connect(_refresh_active_note_sizes)
+
+
+func _refresh_active_note_sizes() -> void:
+	for tile: Panel in active_rendering_array:
+		var timeline_index := int(tile.get_meta("timeline_index"))
+		if timeline_index >= 0 and timeline_index < tracking_chart_timeline.size():
+			_configure_tile_visual(tile, tracking_chart_timeline[timeline_index])
 
 
 func preallocate_memory_pool() -> void:
+	_tap_style = _make_note_style(VisualTokens.MAGENTA, VisualTokens.MAGENTA_LIGHT)
+	_hold_style = _make_note_style(VisualTokens.CYAN, Color("#c6f7ff"))
 	for i: int in range(MAX_POOL_LIMIT):
-		var tile := ColorRect.new()
+		var tile := Panel.new()
 		tile.set_process(false)
 		tile.set_physics_process(false)
 		tile.visible = false
 		tile.size = Vector2(10.0, 10.0)  # Fallback bounds before lane layout resolves
+		tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		tile.add_theme_stylebox_override("panel", _tap_style)
 
 		tile.set_meta("is_active", false)
 		tile.set_meta("timeline_index", -1)
@@ -47,13 +63,26 @@ func preallocate_memory_pool() -> void:
 		preallocated_node_pool.append(tile)
 
 
+func _make_note_style(fill: Color, highlight: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = fill
+	style.border_color = highlight
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(9)
+	style.shadow_color = Color(fill.r, fill.g, fill.b, 0.28)
+	style.shadow_size = 10
+	style.content_margin_left = 4.0
+	style.content_margin_right = 4.0
+	return style
+
+
 func start_spawning_sequence(chart_data: Dictionary) -> void:
 	tracking_chart_timeline = chart_data["noteTimeline"]
 	next_evaluative_note_index = 0
 	active_rendering_array.clear()
 	deployed_timeline_indices.clear()
 	# Hide any tiles that were active from a previous game
-	for tile: ColorRect in preallocated_node_pool:
+	for tile: Panel in preallocated_node_pool:
 		tile.visible = false
 		tile.set_meta("is_active", false)
 
@@ -88,7 +117,7 @@ func _process(_delta: float) -> void:
 
 
 func _deploy_pool_element(note_spec: Dictionary, timeline_index: int) -> void:
-	for tile: ColorRect in preallocated_node_pool:
+	for tile: Panel in preallocated_node_pool:
 		if tile.get_meta("is_active"):
 			continue
 
@@ -107,7 +136,7 @@ func _deploy_pool_element(note_spec: Dictionary, timeline_index: int) -> void:
 	push_warning("[NoteSpawner] Pool exhausted — increase MAX_POOL_LIMIT.")
 
 
-func _configure_tile_visual(tile: ColorRect, note_spec: Dictionary) -> void:
+func _configure_tile_visual(tile: Panel, note_spec: Dictionary) -> void:
 	var lane_idx: int = note_spec["lane"]
 	var lane_w: float = lane_manager.get_lane_width()
 	var tile_w: float = lane_w * 0.82
@@ -117,9 +146,9 @@ func _configure_tile_visual(tile: ColorRect, note_spec: Dictionary) -> void:
 		var drop_dist: float = lane_manager.get_total_drop_distance()
 		var hold_h: float = (note_spec.get("duration", 0.3) / AudioSync.APPROACH_TIME) * drop_dist
 		tile_h = maxf(tile_h, hold_h)
-		tile.color = Color("#29b6f6")  # Cyan — sustained note
+		tile.add_theme_stylebox_override("panel", _hold_style)
 	else:
-		tile.color = Color("#e91e63")  # Pink — instant tap
+		tile.add_theme_stylebox_override("panel", _tap_style)
 
 	tile.size = Vector2(tile_w, tile_h)
 	tile.position.x = lane_manager.get_lane_left_edge(lane_idx) + (lane_w * 0.09)
@@ -131,7 +160,7 @@ func _synchronize_active_elements(playback_time: float) -> void:
 
 	var idx: int = active_rendering_array.size() - 1
 	while idx >= 0:
-		var tile: ColorRect = active_rendering_array[idx]
+		var tile: Panel = active_rendering_array[idx]
 		var tl_idx: int = tile.get_meta("timeline_index")
 		var note: Dictionary = tracking_chart_timeline[tl_idx]
 
@@ -140,7 +169,7 @@ func _synchronize_active_elements(playback_time: float) -> void:
 		var position_ratio: float = (
 			(playback_time - hit_time + AudioSync.APPROACH_TIME) / AudioSync.APPROACH_TIME
 		)
-		var calc_y: float = position_ratio * drop_dist
+		var calc_y: float = lane_manager.get_playfield_top() + position_ratio * drop_dist
 
 		if tile.get_meta("note_type") == "HOLD":
 			tile.position.y = calc_y - tile.size.y  # Bottom-anchored for HOLD notes
@@ -154,7 +183,7 @@ func _synchronize_active_elements(playback_time: float) -> void:
 		idx -= 1
 
 
-func _retire_tile(tile: ColorRect, active_idx: int) -> void:
+func _retire_tile(tile: Panel, active_idx: int) -> void:
 	tile.visible = false
 	tile.set_meta("is_active", false)
 	active_rendering_array.remove_at(active_idx)

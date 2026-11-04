@@ -19,6 +19,14 @@ signal playback_paused
 signal playback_resumed
 
 const APPROACH_TIME: float = 1.5  ## Visible note window ahead of the hit line (seconds)
+const JUDGMENT_WINDOW_PERFECT: float = 0.050  ## 50 ms PERFECT window
+const JUDGMENT_WINDOW_GOOD: float = 0.100     ## 100 ms GOOD window
+
+func get_judgment_window_perfect() -> float:
+	return JUDGMENT_WINDOW_PERFECT
+
+func get_judgment_window_good() -> float:
+	return JUDGMENT_WINDOW_GOOD
 
 var current_audio_time: float = 0.0
 var adjusted_system_time: float = 0.0

@@ -1,8 +1,7 @@
 extends Node
-class_name GameConfig
 
 const DEFAULT_LANE_COUNT: int = 4
-const ALLOWED_LANE_COUNTS: PackedInt32Array = PackedInt32Array([4, 6])
+const ALLOWED_LANE_COUNTS: Array[int] = [4, 6]
 
 const GAME_STATES: Dictionary = {
 	"MAIN_MENU": "MAIN_MENU",
