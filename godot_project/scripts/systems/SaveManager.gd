@@ -3,6 +3,7 @@
 # cloud/network. All reads/writes are validated; writes are atomic
 # (temp file + rename). No hardcoded secrets.
 extends Node
+class_name SaveManager
 
 const SAVE_FORMAT_VERSION: int = 1
 
@@ -18,7 +19,7 @@ func save_json(path: String, data: Dictionary) -> bool:
 		printerr("[SaveManager] save_json: invalid path: ", path)
 		return false
 
-	var sanitized := _sanitize_variant(data)
+	var sanitized: Variant = _sanitize_variant(data)
 	var tmp_path := path + ".tmp"
 
 	var file := FileAccess.open(tmp_path, FileAccess.WRITE)
@@ -71,7 +72,7 @@ func load_json(path: String, defaults: Dictionary) -> Dictionary:
 		printerr("[SaveManager] Corrupt save file: ", path, " — using defaults.")
 		return _deep_copy(defaults)
 
-	var data := json.get_data()
+	var data: Variant = json.get_data()
 	if typeof(data) != TYPE_DICTIONARY:
 		printerr("[SaveManager] Save root is not a Dictionary: ", path)
 		return _deep_copy(defaults)
@@ -102,8 +103,8 @@ func _validate_and_merge(data: Dictionary, defaults: Dictionary) -> Dictionary:
 	var result := _deep_copy(defaults)
 	for k in defaults.keys():
 		if data.has(k):
-			var expected := defaults[k]
-			var actual := data[k]
+			var expected: Variant = defaults[k]
+			var actual: Variant = data[k]
 			if _types_compatible(actual, expected):
 				result[k] = actual
 			else:

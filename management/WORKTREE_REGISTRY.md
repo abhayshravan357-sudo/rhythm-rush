@@ -62,3 +62,8 @@ For each new agent:
 1. Archive/delete -2 branches (Agent 00 approval needed)
 2. Remove kilo internal worktrees (Agent 00 approval needed)
 3. Verify specialist session IDs in AGENT_REGISTRY.md
+## Continuation snapshot — 2026-11-02
+
+The previously listed primary sibling worktrees and internal Kilo worktrees remain preserved. This continuation made no new worktree or branch. Live agent activity was not verified from the current workspace, so the historical `Active` labels above should not be read as confirmation of ongoing participation.
+
+Current continuation changes are in the primary `main` workspace and are not specialist worktree contributions. Existing dirty/staged state remains preserved; no branches or worktrees were created or removed.

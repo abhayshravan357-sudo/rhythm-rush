@@ -27,3 +27,7 @@ Verification rule: An agent is "active" only when its session has been verified 
 - Agents must not modify files outside their ownership without Agent 00 coordination.
 - Shared files (project.godot, autoloads, manifest) are owned by Agent 00; changes require Chief Engineer approval.
 - Existing committed code (godot_project/, charts/, pipeline/) is preserved; specialists extend, not rewrite, without approval.
+
+## Continuation activity verification — 2026-11-02
+
+No specialist session was activated or assigned during the current Codex workspace continuation. The repository and external sibling worktrees are present, but current live participation could not be independently queried from this session. Do not infer that Agents 01–07 contributed to the continuation changes; Agent 00 (current workspace) owns the recorded edits and validation above. Existing session verification entries are retained as historical state.
