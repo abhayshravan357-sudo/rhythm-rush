@@ -209,8 +209,42 @@ func _evaluate_hit_precision(note_index: int, error_delta: float) -> void:
 	absolute_accumulated_score += points
 	historical_maximum_combo = maxi(historical_maximum_combo, operational_combo_counter)
 	emit_signal("alignment_processed", rating, operational_combo_counter, get_accuracy())
+
+	# Resolve any simultaneous chord notes in other lanes at the same time
+	_resolve_simultaneous_chord(note_index, error_delta)
+
 	if is_sequence_complete() and not sequence_completed:
 		_finalize_sequence()
+
+
+# ── Simultaneous chord judgment ──────────────────────────────────────────────
+
+# When a note is hit at time T in lane L, check for unresolved notes in other
+# lanes at approximately the same time (within CHORD_WINDOW seconds) and
+# resolve them as part of the same chord. This enables simultaneous multi-lane
+# input (chords) to be judged together.
+const CHORD_WINDOW: float = 0.030  # 30 ms simultaneity tolerance
+
+func _resolve_simultaneous_chord(primary_index: int, primary_time: float) -> void:
+	"""Resolve any unresolved notes at the same timestamp as primary_index
+	but in different lanes, treating them as a simultaneous chord hit."""
+	var primary_note: Dictionary = reference_timeline[primary_index]
+	var primary_lane: int = int(primary_note.get("lane", -1))
+
+	for i: int in range(reference_timeline.size()):
+		if i == primary_index:
+			continue
+		if resolved_flags.get(i, false):
+			continue
+		var note: Dictionary = reference_timeline[i]
+		var note_lane: int = int(note.get("lane", -1))
+		if note_lane == primary_lane:
+			continue  # same lane — not a chord, skip
+		var note_time: float = float(note.get("timestamp", 0.0))
+		var time_delta: float = absf(note_time - primary_time)
+		if time_delta <= CHORD_WINDOW:
+			# Resolve this note as part of the chord using its own timing delta
+			_evaluate_hit_precision(i, time_delta)
 
 
 func _register_miss(note_index: int) -> void:
