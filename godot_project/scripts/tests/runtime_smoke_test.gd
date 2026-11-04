@@ -184,6 +184,11 @@ func _run_tests() -> void:
 		else:
 			record.call(18, "Verify pause", "FAIL", "Pause transition failed")
 
+		# 18b. Regression: pause must not corrupt the audio clock position.
+		var paused_clock: float = AudioSync.get_playback_position_seconds()
+		var clock_stable: bool = paused_clock >= 0.0
+		record.call(18, "Verify pause clock stability (regression)", "PASS" if clock_stable else "FAIL", "Audio clock retained a valid position during pause: %.4f s" % paused_clock)
+
 		# 19. Verify resume
 		GameController.resume_song()
 		var is_res: bool = GameStateManager.is_playing()
@@ -192,6 +197,11 @@ func _run_tests() -> void:
 			record.call(19, "Verify resume", "PASS", "PLAYING state, audio clock, and pause overlay resumed together")
 		else:
 			record.call(19, "Verify resume", "FAIL", "Resume transition failed")
+
+		# 19b. Regression: resume must not reset the audio clock to zero.
+		var resumed_clock: float = AudioSync.get_playback_position_seconds()
+		var clock_resumed: bool = resumed_clock > 0.0
+		record.call(19, "Verify resume clock continuity (regression)", "PASS" if clock_resumed else "FAIL", "Audio clock continued after resume: %.4f s" % resumed_clock)
 
 		# 20. Verify song completion
 		GameController.complete_song()

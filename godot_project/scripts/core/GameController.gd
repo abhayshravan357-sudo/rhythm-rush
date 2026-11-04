@@ -47,6 +47,7 @@ func pause_song() -> void:
 		return
 	is_game_active = false
 	GameStateManager.transition_to(GameStateManager.GameState.PAUSED)
+	AudioSync.pause_audio_pipeline()
 	emit_signal("song_paused", current_song_id)
 
 
@@ -55,6 +56,7 @@ func resume_song() -> void:
 		return
 	is_game_active = true
 	GameStateManager.transition_to(GameStateManager.GameState.PLAYING)
+	AudioSync.start_audio_pipeline()
 	emit_signal("song_resumed", current_song_id)
 
 
