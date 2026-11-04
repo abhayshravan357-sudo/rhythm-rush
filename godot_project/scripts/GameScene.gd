@@ -243,10 +243,9 @@ func _show_floating_score(rating: String) -> void:
 func _apply_pause_ui(paused: bool) -> void:
 	lane_manager.set_input_enabled(not paused)
 	pause_overlay.visible = paused
-	if paused:
-		AudioSync.stop_audio_pipeline()
-	else:
-		AudioSync.start_audio_pipeline()
+	# Audio pause/resume is handled by GameController.pause_song()/resume_song()
+	# which drives AudioSync.pause_audio_pipeline()/start_audio_pipeline().
+	# UI only controls visual state here.
 
 
 func _on_game_state_changed(from_state: String, to_state: String) -> void:
@@ -289,8 +288,7 @@ func _on_retry_pressed() -> void:
 	# Restart the same song
 	GameController.prepare_song(GameController.current_song_id, GameController.current_chart_path)
 	note_spawner.start_spawning_sequence(GameController.current_chart)
-	AudioSync.start_audio_pipeline()
-	GameStateManager.transition_to(GameStateManager.GameState.PLAYING)
+	GameController.start_song()
 	lane_manager.set_input_enabled(true)
 	score_label.text = "0"
 	combo_label.text = ""
