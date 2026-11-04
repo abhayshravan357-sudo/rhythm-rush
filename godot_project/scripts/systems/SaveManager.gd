@@ -10,7 +10,8 @@ const SAVE_FORMAT_VERSION: int = 1
 # ── Public API ────────────────────────────────────────────────────────────
 
 # Write `data` (Dictionary) to `path` under user:// atomically.
-# Returns true on success.
+# A checksum field ("_save_checksum") is added so that load_json() can detect
+# tampering or corruption. Returns true on success.
 func save_json(path: String, data: Dictionary) -> bool:
 	if typeof(data) != TYPE_DICTIONARY:
 		printerr("[SaveManager] save_json: data must be a Dictionary.")
@@ -20,6 +21,8 @@ func save_json(path: String, data: Dictionary) -> bool:
 		return false
 
 	var sanitized: Variant = _sanitize_variant(data)
+	# Add integrity checksum before serializing.
+	var with_checksum := _add_checksum(sanitized)
 	var tmp_path := path + ".tmp"
 
 	var file := FileAccess.open(tmp_path, FileAccess.WRITE)
@@ -28,7 +31,7 @@ func save_json(path: String, data: Dictionary) -> bool:
 		return false
 
 	var json := JSON.new()
-	var encoded := json.stringify(sanitized)
+	var encoded := json.stringify(with_checksum)
 	file.store_string(encoded)
 	file.store_to_end("\n")
 	file.close()
@@ -75,6 +78,10 @@ func load_json(path: String, defaults: Dictionary) -> Dictionary:
 	var data: Variant = json.get_data()
 	if typeof(data) != TYPE_DICTIONARY:
 		printerr("[SaveManager] Save root is not a Dictionary: ", path)
+		return _deep_copy(defaults)
+
+	if not _verify_checksum(data):
+		printerr("[SaveManager] Checksum mismatch — save file may be corrupt: ", path)
 		return _deep_copy(defaults)
 
 	return _validate_and_merge(data, defaults)
@@ -157,6 +164,44 @@ func _sanitize_array(a: Array) -> Array:
 	for v in a:
 		out.append(_sanitize_variant(v))
 	return out
+
+
+# ── Checksum integrity ──────────────────────────────────────────────────────
+
+func _add_checksum(data: Dictionary) -> Dictionary:
+	"""Add a _save_checksum field to `data` computed from all other fields."""
+	var copy := data.duplicate(true)
+	copy.erase("_save_checksum")
+	var serialized := JSON.stringify(copy)
+	var hash: int = _hash_string(serialized)
+	copy["_save_checksum"] = hash
+	return copy
+
+
+func _verify_checksum(data: Dictionary) -> bool:
+	"""Return true if `data["_save_checksum"]` matches the recomputed checksum
+	of all other fields. Missing or mismatched checksum returns false."""
+	if not data.has("_save_checksum"):
+		return false
+	var stored: Variant = data.get("_save_checksum")
+	if typeof(stored) != TYPE_INT:
+		return false
+	var copy := data.duplicate(true)
+	copy.erase("_save_checksum")
+	var serialized := JSON.stringify(copy)
+	var expected: int = _hash_string(serialized)
+	return stored == expected
+
+
+# Simple FNV-1a style hash over a string. Not cryptographic — just sufficient
+# to detect accidental corruption or truncation of the save file.
+func _hash_string(s: String) -> int:
+	var hash: int = 2166136261
+	for i in range(s.length()):
+		var c: int = s.ord_at(i)
+		hash = (hash * 16777619) % (2**32)
+		hash = hash ^ c
+	return hash
 
 
 # Restrict writes/reads to user:// (local, app-private storage only).
