@@ -1,5 +1,12 @@
-; Engine configuration file — Godot 4
-; Generated for Project Hexa-Rhythm
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
 
 [application]
 
@@ -8,8 +15,12 @@ config/description="6-lane rhythm game driven by AI-generated audio charts."
 config/version="0.1.0"
 run/main_scene="res://scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
-boot_splash/bg_color=Color(0.06, 0.06, 0.10, 1)
+boot_splash/bg_color=Color(0.06, 0.06, 0.1, 1)
 config/icon="res://assets/textures/icon.svg"
+
+[audio]
+
+default_bus_layout="res://default_bus_layout.tres"
 
 [autoload]
 
@@ -19,8 +30,10 @@ GameController="*res://scripts/core/GameController.gd"
 ChartLoader="*res://scripts/ChartLoader.gd"
 AudioSync="*res://scripts/AudioSync.gd"
 ScoreManager="*res://scripts/ScoreManager.gd"
+AudioFeedback="*res://scripts/systems/AudioFeedback.gd"
 OffsetCalibration="*res://scripts/OffsetCalibration.gd"
 PlayerProfile="*res://scripts/systems/PlayerProfile.gd"
+SettingsManager="*res://scripts/systems/SettingsManager.gd"
 
 [display]
 
@@ -39,12 +52,12 @@ tap={
 ]
 }
 
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="mobile"
 environment/defaults/default_clear_color=Color(0.04, 0.04, 0.08, 1)
-textures/canvas_textures/default_texture_filter=0
-
-[physics]
-
-common/physics_ticks_per_second=60

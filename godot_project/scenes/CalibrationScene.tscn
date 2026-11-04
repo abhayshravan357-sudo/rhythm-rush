@@ -1,13 +1,20 @@
-[gd_scene load_steps=1 format=3 uid="uid://calibration_scene"]
+[gd_scene load_steps=4 format=3 uid="uid://calibration_scene"]
+
+[ext_resource type="Script" path="res://scripts/ui/CalibrationUI.gd" id="1_calibration_ui"]
+[ext_resource type="Theme" path="res://assets/theme/hexarhythm_theme.tres" id="2_theme"]
+[ext_resource type="Script" path="res://scripts/ui/AtmosphereBackground.gd" id="3_atmosphere"]
 
 [node name="CalibrationScene" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+script = ExtResource("1_calibration_ui")
+theme = ExtResource("2_theme")
 
 [node name="Background" type="ColorRect" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.04, 0.04, 0.08, 1)
+script = ExtResource("3_atmosphere")
 
 [node name="VBox" type="VBoxContainer" parent="."]
 anchor_left = 0.5
