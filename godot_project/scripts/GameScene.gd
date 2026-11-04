@@ -44,8 +44,6 @@ var _combo_tween: Tween = null
 
 
 func _ready() -> void:
-	AudioSync.initialize_playback_channel($AudioPlayer)
-
 	# Wire ScoreManager signals to HUD updates
 	ScoreManager.alignment_processed.connect(_on_hit_evaluated)
 	ScoreManager.sequence_tracking_concluded.connect(_on_song_completed)
@@ -83,6 +81,19 @@ func _bootstrap_gameplay() -> void:
 		GameController.exit_to_menu()
 		return
 
+	# Load the chart's audio file and bind it to the AudioPlayer before
+	# initializing the playback channel and starting the pipeline.
+	var meta: Dictionary = GameController.current_chart.get("metaData", {})
+	var audio_file: String = meta.get("audioFile", "")
+	var audio_stream: AudioStream = null
+	if not audio_file.is_empty():
+		var audio_path: String = "res://assets/audio/" + audio_file
+		audio_stream = load(audio_path)
+		if audio_stream != null:
+			$AudioPlayer.stream = audio_stream
+		else:
+			printerr("[GameScene] Failed to load audio: ", audio_path)
+
 	# Enable input only after all systems are ready
 	lane_manager.set_input_enabled(true)
 
@@ -90,13 +101,19 @@ func _bootstrap_gameplay() -> void:
 	var chart_data: Dictionary = GameController.current_chart
 	note_spawner.start_spawning_sequence(chart_data)
 
-	# Start the audio pipeline
+	# Bind AudioPlayer to AudioSync, set song duration for completion detection,
+	# then start the audio pipeline. set_song_duration must come after
+	# initialize_playback_channel because the latter resets song_duration to 0.
+	AudioSync.initialize_playback_channel($AudioPlayer)
+	if audio_stream != null:
+		AudioSync.set_song_duration(audio_stream.get_length())
+
 	AudioSync.start_audio_pipeline()
 	GameStateManager.transition_to(GameStateManager.GameState.PLAYING)
 
 
 func _on_hit_evaluated(rating: String, combo: int, accuracy: float) -> void:
-	score_label.text = str(ScoreManager.get_final_score()) + "  (" + str(round(accuracy, 1)) + "%)"
+	score_label.text = str(ScoreManager.get_final_score()) + "  (" + str(roundf(accuracy * 10.0) / 10.0) + "%)"
 	combo_label.text = "Combo: " + str(combo) if combo > 0 else ""
 	_show_rating_feedback(rating)
 	_show_timing_feedback(rating)
