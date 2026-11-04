@@ -111,6 +111,49 @@ func _record_drift_sample() -> void:
 	# Cap sample history to keep memory bounded.
 	if _drift_samples.size() > 600:
 		_drift_samples.pop_front()
+	_auto_calibrate_offset()
+
+
+# ── Auto-calibration ──────────────────────────────────────────────────────────
+
+# Threshold (seconds) beyond which the offset is auto-corrected.
+const DRIFT_CALIBRATE_THRESHOLD: float = 0.010  # 10 ms
+# How often (in samples) to attempt auto-calibration.
+const DRIFT_CALIBRATE_INTERVAL: int = 60
+
+
+func _auto_calibrate_offset() -> void:
+	"""Adjust local_hardware_offset when measured drift exceeds threshold.
+
+	Prevents cumulative timing error between the audio hardware clock and
+	adjusted_system_time from growing unbounded across a long song.
+	Only applied when enough samples exist and drift is consistent in one
+	direction.
+	"""
+	if _drift_samples.size() < DRIFT_CALIBRATE_INTERVAL:
+		return
+	if _drift_samples.size() % DRIFT_CALIBRATE_INTERVAL != 0:
+		return
+
+	# Use the median of the most recent samples to avoid outliers.
+	var recent: Array[float] = _drift_samples.slice(-DRIFT_CALIBRATE_INTERVAL)
+	recent.sort()
+	var median_idx: int = DRIFT_CALIBRATE_INTERVAL / 2
+	var median_drift: float = recent[median_idx]
+
+	if absf(median_drift) > DRIFT_CALIBRATE_THRESHOLD:
+		# Shift the offset by the median drift so adjusted_system_time tracks
+		# the audio clock more closely.
+		local_hardware_offset += median_drift
+
+		# Persist the new offset so it survives restarts.
+		var config := ConfigFile.new()
+		if config.load("user://settings.cfg") != OK:
+			config.set_value("audio", "user_offset", local_hardware_offset)
+			config.save("user://settings.cfg")
+		else:
+			config.set_value("audio", "user_offset", local_hardware_offset)
+			config.save("user://settings.cfg")
 
 
 # ── Lifecycle ─────────────────────────────────────────────────────────────────
