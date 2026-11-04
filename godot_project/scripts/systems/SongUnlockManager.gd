@@ -171,6 +171,16 @@ func set_progress(song_id: Variant, progress: Variant) -> bool:
 	song_states[sid]["progress"] = clampf(_as_float(progress), 0.0, 1.0)
 	return true
 
+# Unlock a song when a score threshold is met. Returns true if the song was
+# newly unlocked (or was already unlocked). Safe to call repeatedly.
+func unlock_song_on_score(song_id: Variant, score: int, threshold: int) -> bool:
+	var sid := _validate_song_id(song_id)
+	if sid == "" or not song_catalogue.has(sid) or not song_states.has(sid):
+		return false
+	if score < threshold:
+		return false  # threshold not met
+	return unlock_song(sid)
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────
 
