@@ -43,7 +43,7 @@ func set_catalogue(catalogue: Dictionary) -> void:
 func _rebuild_states_from_catalogue() -> void:
 	song_states = {}
 	for sid in song_catalogue.keys():
-		var entry := song_catalogue[sid]
+		var entry: Variant = song_catalogue[sid]
 		var unlocked_by_default: bool = false
 		if typeof(entry) == TYPE_DICTIONARY:
 			unlocked_by_default = bool(entry.get("unlocked_by_default", false))
@@ -56,17 +56,17 @@ func _rebuild_states_from_catalogue() -> void:
 # Load persisted unlocks, merged over catalogue defaults. Never crashes on
 # corrupt data; falls back to catalogue defaults.
 func load() -> bool:
-	var data := _ensure_save().load_json(SAVE_PATH, {"song_states": {}})
-	var raw_states := data.get("song_states", {})
+	var data: Dictionary = _ensure_save().load_json(SAVE_PATH, {"song_states": {}})
+	var raw_states: Variant = data.get("song_states", {})
 	if typeof(raw_states) != TYPE_DICTIONARY:
 		raw_states = {}
 
 	song_states = {}
 	for sid in song_catalogue.keys():
-		var persisted := raw_states.get(sid, {})
+		var persisted: Variant = raw_states.get(sid, {})
 		if typeof(persisted) != TYPE_DICTIONARY:
 			persisted = {}
-		var entry := song_catalogue[sid]
+		var entry: Variant = song_catalogue[sid]
 		var default_unlocked: bool = false
 		if typeof(entry) == TYPE_DICTIONARY:
 			default_unlocked = bool(entry.get("unlocked_by_default", false))
@@ -96,14 +96,14 @@ func is_unlocked(song_id: Variant) -> bool:
 	var sid := _validate_song_id(song_id)
 	if sid == "" or not song_states.has(sid):
 		return false
-	var state := song_states[sid]
+	var state: Variant = song_states[sid]
 	return bool(state.get("unlocked", false)) if typeof(state) == TYPE_DICTIONARY else false
 
 func get_progress(song_id: Variant) -> float:
 	var sid := _validate_song_id(song_id)
 	if sid == "" or not song_states.has(sid):
 		return 0.0
-	var state := song_states[sid]
+	var state: Variant = song_states[sid]
 	if typeof(state) != TYPE_DICTIONARY:
 		return 0.0
 	return clampf(_as_float(state.get("progress", 0.0)), 0.0, 1.0)
@@ -112,7 +112,7 @@ func get_unlocked_at(song_id: Variant) -> int:
 	var sid := _validate_song_id(song_id)
 	if sid == "" or not song_states.has(sid):
 		return -1
-	var state := song_states[sid]
+	var state: Variant = song_states[sid]
 	return _as_int(state.get("unlocked_at", -1)) if typeof(state) == TYPE_DICTIONARY else -1
 
 func get_all_states() -> Dictionary:
@@ -135,7 +135,7 @@ func get_title(song_id: Variant) -> String:
 	var sid := _validate_song_id(song_id)
 	if sid == "" or not song_catalogue.has(sid):
 		return ""
-	var entry := song_catalogue[sid]
+	var entry: Variant = song_catalogue[sid]
 	return String(entry.get("title", sid)) if typeof(entry) == TYPE_DICTIONARY else String(sid)
 
 
@@ -158,7 +158,7 @@ func lock_song(song_id: Variant) -> bool:
 	var sid := _validate_song_id(song_id)
 	if sid == "" or not song_catalogue.has(sid) or not song_states.has(sid):
 		return false
-	var entry := song_catalogue[sid]
+	var entry: Variant = song_catalogue[sid]
 	if typeof(entry) == TYPE_DICTIONARY and bool(entry.get("unlocked_by_default", false)):
 		return false  # default-unlocked songs cannot be locked
 	song_states[sid]["unlocked"] = false

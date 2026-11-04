@@ -3,13 +3,20 @@
 # Scoring logic is UI-independent (no references to nodes/UI).
 #
 # Judgment windows (one-sided delta from note timestamp):
-#   PERFECT : ≤ 50 ms  → 300 pts, combo +1
-#   GOOD    : ≤ 100 ms → 100 pts, combo +1
-#   MISS    : > 100 ms →   0 pts, combo reset
+#   PERFECT : <= 50 ms  -> 300 pts, combo +1
+#   GOOD    : <= 100 ms -> 100 pts, combo +1
+#   MISS    : > 100 ms  ->   0 pts, combo reset, note resolved once
 #
-# Accuracy   = total_score / (total_notes * 300) * 100   (0–100 %)
-# Grade bands: S ≥ 95, A ≥ 90, B ≥ 80, C ≥ 70, D ≥ 60, F < 60
-# Score never goes negative; a miss resets the running combo.
+# MVP-03 scoring refinement:
+#   - Combo-based score multiplier (tiers: 1x/2x/3x/4x, capped at 4x).
+#   - Accuracy reflects timing precision (judgment-based), not multiplier.
+#   - Each note resolved exactly once (resolved_flags); duplicate hits are no-ops.
+#   - Score never negative; miss resets running combo; max combo tracks peak.
+#   - Final statistics (score, max_combo, accuracy, grade, counts) are consistent.
+#
+# Accuracy = (perfect*300 + good*100) / (total_notes * 300) * 100   (0-100 %)
+# Grade bands: S >= 95, A >= 90, B >= 80, C >= 70, D >= 60, F < 60
+# Multiplier tiers: 0-9 combo = 1x, 10-19 = 2x, 20-29 = 3x, 30+ = 4x (cap)
 
 extends Node
 
@@ -17,6 +24,8 @@ signal alignment_processed(rating: String, combo: int, accuracy: float)
 signal sequence_tracking_concluded(final_score: int, max_combo: int, accuracy: float, grade: String)
 
 const MAX_POINTS_PER_NOTE: int = 300
+const MAX_MULTIPLIER: int = 4
+const COMBO_TIER_STEP: int = 10
 
 const GRADE_S: String = "S"
 const GRADE_A: String = "A"
@@ -37,7 +46,7 @@ var good_count: int = 0
 var miss_count: int = 0
 
 var reference_timeline: Array = []
-var resolved_flags: Dictionary = {}   # note_index (int) → resolved (bool)
+var resolved_flags: Dictionary = {}   # note_index (int) -> resolved (bool)
 
 
 func reset_scoring_matrix(chart_payload: Dictionary) -> void:
@@ -58,11 +67,23 @@ func reset_scoring_matrix(chart_payload: Dictionary) -> void:
 	total_note_count = reference_timeline.size()
 
 
+# ── Multiplier ────────────────────────────────────────────────────────────────
+
+func get_multiplier() -> int:
+	"""Combo-based score multiplier. Tiers: 1x/2x/3x/4x, capped at MAX_MULTIPLIER."""
+	var tier: int = 1 + int(operational_combo_counter / COMBO_TIER_STEP)
+	return clampi(tier, 1, MAX_MULTIPLIER)
+
+
+# ── Queries ───────────────────────────────────────────────────────────────────
+
 func get_accuracy() -> float:
+	"""Timing-precision accuracy: judgment quality / theoretical max, 0-100 %."""
 	if total_note_count <= 0:
 		return 0.0
+	var earned: float = float(perfect_count) * float(MAX_POINTS_PER_NOTE) + float(good_count) * 100.0
 	var max_possible: float = float(total_note_count) * float(MAX_POINTS_PER_NOTE)
-	var accuracy: float = float(absolute_accumulated_score) / max_possible * 100.0
+	var accuracy: float = earned / max_possible * 100.0
 	return clampf(accuracy, 0.0, 100.0)
 
 
@@ -83,6 +104,22 @@ func get_grade() -> String:
 
 func get_final_score() -> int:
 	return absolute_accumulated_score
+
+
+func get_score() -> int:
+	return absolute_accumulated_score
+
+
+func get_perfect_count() -> int:
+	return perfect_count
+
+
+func get_good_count() -> int:
+	return good_count
+
+
+func get_miss_count() -> int:
+	return miss_count
 
 
 func get_max_combo() -> int:
@@ -109,6 +146,8 @@ func is_sequence_complete() -> bool:
 			return false
 	return true
 
+
+# ── Input ─────────────────────────────────────────────────────────────────────
 
 func process_action_input(target_lane: int) -> void:
 	if reference_timeline.is_empty():
@@ -147,24 +186,26 @@ func _evaluate_hit_precision(note_index: int, error_delta: float) -> void:
 	resolved_flags[note_index] = true
 	resolved_notes_count += 1
 	var rating: String
-	var points: int
+	var base_points: int
 
 	if error_delta <= AudioSync.get_judgment_window_perfect():
 		rating = "PERFECT"
-		points = 300
+		base_points = 300
 		perfect_count += 1
 		operational_combo_counter += 1
 	elif error_delta <= AudioSync.get_judgment_window_good():
 		rating = "GOOD"
-		points = 100
+		base_points = 100
 		good_count += 1
 		operational_combo_counter += 1
 	else:
 		rating = "MISS"
-		points = 0
+		base_points = 0
 		miss_count += 1
 		operational_combo_counter = 0
 
+	var multiplier: int = get_multiplier()
+	var points: int = base_points * multiplier
 	absolute_accumulated_score += points
 	historical_maximum_combo = maxi(historical_maximum_combo, operational_combo_counter)
 	emit_signal("alignment_processed", rating, operational_combo_counter, get_accuracy())

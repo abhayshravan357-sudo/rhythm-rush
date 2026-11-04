@@ -36,6 +36,10 @@ func stop_calibration() -> void:
 	_running = false
 
 
+func get_tap_count() -> int:
+	return _taps.size()
+
+
 func _process(delta: float) -> void:
 	if not _running:
 		return
@@ -75,14 +79,10 @@ func _finalise() -> void:
 		sum += v
 	var mean: float = sum / float(_taps.size())
 
-	# Persist to settings file — AudioSync reads this on next startup
-	var config := ConfigFile.new()
-	config.load("user://settings.cfg")  # Load existing keys so we don't wipe them
-	config.set_value("audio", "user_offset", mean)
-	config.save("user://settings.cfg")
-
 	print("[OffsetCalibration] Saved offset: ", snappedf(mean * 1000.0, 0.1), " ms")
 	emit_signal("calibration_complete", mean)
 
-	# Reload AudioSync offset immediately without requiring a restart
+	# Persist through the shared settings manager so calibration preserves the
+	# music and sound-effects preferences stored in the same config file.
 	AudioSync.local_hardware_offset = mean
+	SettingsManager.save_settings()

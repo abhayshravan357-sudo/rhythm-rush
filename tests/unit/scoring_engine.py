@@ -27,7 +27,7 @@ POINTS_PERFECT = 300
 POINTS_GOOD = 100
 POINTS_MISS = 0
 
-LANE_COUNT = 6  # matches charts/example_chart.json in this worktree (lanes 0-5)
+LANE_COUNT = 4  # matches charts/example_chart.json (lanes 0-3)
 
 
 @dataclass
