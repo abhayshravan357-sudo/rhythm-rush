@@ -344,11 +344,12 @@ MVP-02.1 — Gameplay Integration & Verification (COMPLETE — 2026-11-01)
 - Gameplay loop verified: Chart → Tile Spawning → Four Lanes → Touch Input → Hit Detection → Score Update.
 - PlayerProfile/SaveManager/SongUnlockManager deferred (ADR-016) — not required for playable loop.
 
-MVP-03 — Audio Synchronization, Input & Scoring Refinement (AUTHORIZED — 2026-11-02)
-- Objective: Reliable rhythm-game engine with accurate timing, consistent input, trustworthy scoring.
-- Approved main commit: a1cdc42
-- 91 existing tests must all remain passing.
-- Audio timing is the primary engineering question.
+MVP-03 — Audio Synchronization, Input & Scoring Refinement (COMPLETE — 2026-11-02)
+- All 8 specialist tasks complete. Test results on integrated main: 141 passed, 0 failed.
+- Authoritative audio-clock synchronization, deterministic input handling,
+  reliable judgment windows, consistent scoring calculations.
+- Deferred per project owner: PlayerProfile, SaveManager, SongUnlockManager
+  NOT integrated unless required for playable loop (ADR-016).
 
 ## T-MVP-03a — Chief Coordination + Integration
 **Responsible Agent:** Agent 00 — Chief Engineer
@@ -551,3 +552,26 @@ Wave 7 — Future Expansion (PENDING — not first wave)
 - T-22 (APK) depends on Android SDK installation (blocked — no SDK present)
 - T-23 depends on physical Android device/emulator availability (none detected)
 - Wave 4 depends on MVP-03 COMPLETE and Agent 00 approval
+## Master Continuation Tasks — 2026-11-02
+
+| ID | Scope | Current state | Evidence / remaining work |
+|---|---|---|---|
+| CONT-01 | Godot resource cleanup | COMPLETE | Verbose 26-check runtime exits without ObjectDB, resource-in-use, or Control layout warnings. Gameplay scene clears AudioSync's reference; harness waits for scene and mixer retirement. |
+| CONT-02 | Settings and calibration | PARTIAL | Music and SFX buses, persisted volume sliders, defaults reset, calibration screen wiring and shared config persistence implemented; settings/calibration scene checks pass. GUI usability and device audio checks remain. |
+| CONT-03 | Classic results/profile | PARTIAL | Dedicated results UI, one-time profile save, per-song best score/accuracy and bounded run history integrated; headless result and duplicate-save check passes. Profile screen, unlock conditions, achievements and rewards remain. |
+| CONT-04 | Game modes | PENDING | Classic exists. Endless, Rush, Challenge, Daily Challenge are still required by the GDD. |
+| CONT-05 | Asset licensing | BLOCKED | Register created. Bundled OGG provenance/license evidence absent; exclude from any distributed build until cleared/replaced. |
+| CONT-06 | Android/device | BLOCKED | platform-tools/build-tools/platform packages absent; no emulator/device. Installation/license acceptance and hardware validation not performed. |
+| CONT-07 | Performance | PENDING | No Android measurements. Build repeatable target-device profiling after toolchain/device access. |
+| CONT-08 | Profile view | PARTIAL | Main Menu entry and local profile screen display level, XP, play statistics, and high scores; headless checked. Profile editing and deeper progression remain open. |
+
+## Visual/UI Overhaul Tasks — 2026-11-02
+
+| ID | Responsible | Scope and dependency | Current state | Evidence / remaining work |
+|---|---|---|---|---|
+| VUI-01 | Agent 00 | Diagnose supplied gameplay capture and implement reusable visual tokens/theme | IMPLEMENTED; headless checked | Root causes and palette documented in docs/ui/HEXARHYTHM_VISUAL_SYSTEM.md; GUI screenshot pass still needed. |
+| VUI-02 | Agent 00 | Responsive gameplay lanes, notes, receptors, HUD, pause and resume integration | IMPLEMENTED; headless checked | 27/27 runtime checks include scoring, pause/audio resume, and existing chart path. Six-lane rendering has not had GUI review. |
+| VUI-03 | Agent 00 | Main Menu, song library details and honest chart/audio states | IMPLEMENTED; headless checked | Main menu navigation and selected chart metadata wired; only one packaged chart and no difficulty/artist data exist. GUI navigation review remains. |
+| VUI-04 | Agent 00 | Results, settings, profile and compact screen layout refinement | IMPLEMENTED; headless checked | Real score/profile/settings data remain wired; portrait and landscape content geometry has not been visually reviewed. |
+| VUI-05 | Agent 06 / Agent 07 (existing roles) | Independent GUI, mobile, and Android presentation review | BLOCKED — specialist availability unverified | Live task roster showed no specialist workers; GUI display server unavailable. No agent/session was created. Resume when existing reviewers and a GUI/device environment are available. |
+| VUI-06 | Agent 00 | Remaining GDD screens and content-dependent selection features | PENDING | Modes, achievements, progression, difficulty variants, search/filter, licensed artwork, and track previews need their real underlying data/systems. |

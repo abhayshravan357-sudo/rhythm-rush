@@ -20,30 +20,24 @@
 | 2026-11-01T19:44:XXZ | Agent 00 (Chief) | **MVP-02.1 AUTHORIZED** | Project owner conditionally accepted MVP-02 implementation at commit 2cbf5e6. MVP-02.1 (Gameplay Integration & Verification) authorized to close verification gaps: scene integration, HUD wiring, gameplay tests, timing review. PlayerProfile/SaveManager/SongUnlockManager deferred unless required for playable loop. |
 | 2026-11-01T20:00:XXZ | Agent 00 (Chief) | **MVP-02.1 COMPLETE** | All 8 specialist tasks complete. Tests: 91 passed, 0 failed (46 original + 45 new). Gameplay loop verified: Chart → Tile Spawning → Four Lanes → Touch Input → Hit Detection → Score Update. PlayerProfile/SaveManager/SongUnlockManager deferred (ADR-016). Awaiting project-owner approval for MVP-03. |
 | 2026-11-02T02:16:XXZ | Agent 00 (Chief) | **MVP-03 AUTHORIZED** | Project owner approved MVP-03 at commit a1cdc42. 91 tests passing. MVP-03 focuses on audio synchronization, input handling, and scoring refinement. Audio timing is the primary engineering question. All 8 Agent Manager sessions launching for MVP-03. |
+| 2026-11-02T02:18:XXZ | Agent 00 (Chief) | **MVP-03 IN PROGRESS** | Management docs updated (TASK_REGISTER, AGENT_DASHBOARD). All 8 specialists assigned to T-MVP-03a through T-MVP-03h. AudioSync pause/resume timing corruption identified as primary defect to fix. |
+| 2026-11-02T02:30:XXZ | Agent 00 (Chief) | **MVP-03 COMPLETE** | All 8 specialist tasks complete and integrated into main at commit 1fea25d. Tests: 141 passed, 0 failed (91 existing preserved + 50 new MVP-03 tests). Authoritative audio-clock synchronization, deterministic input handling, reliable judgment windows, consistent scoring calculations. All cross-agent interfaces reviewed. Blockers B-01/B-02/B-04 documented (L4-L6 blocked). Awaiting project-owner approval for MVP-04. |
+| 2026-11-02T03:30:00Z | Agent 00 (Chief) | **ENV SETUP & RUNTIME READINESS COMPLETE** | Coordinated all 8 agents to audit Pop!_OS environment and resolve safe toolchain setup. Installed Godot 4.3 stable (`~/.local/bin/godot`) & export templates (`4.3.stable`); installed Temurin OpenJDK 17.0.21 (`~/.local/share/jdk-17`); installed Android cmdline-tools 12.0 (`~/.local/share/android-sdk`); configured debug keystore and export presets; created Python 3.14 `.venv` with `librosa`, `soundfile`, `scipy`, `numpy`. Fixed GDScript 4 parser defects (GameConfig, GameController, ScoreManager, SaveManager, SongUnlockManager, GameScene). Executed 23-step Godot runtime smoke test: 23/23 PASSED (L4 verified). Python regression: 141/141 PASSED (L2 verified). Core chart-generation pipeline validated end-to-end. B-01 & B-03 resolved; B-02 partially resolved; B-04 documented. |
 
 ## Pending Next Actions
 
-1. **Agent 01**: Connect MainMenu Play button → GameController → GameScene integration
-2. **Agent 04**: Complete GameScene.gd (HUD wiring, pause handling, judgment feedback, results transition)
-3. **Agent 06**: Add gameplay unit tests (lane_manager, note_spawner, game_controller, gameplay_flow)
-4. **Agent 03**: Review AudioSync timing integration (pause/resume, calibration)
-5. **Agent 02**: Review LaneManager/NoteSpawner & expose testable interfaces
-6. **Agent 05**: Review PlayerProfile/SaveManager/SongUnlockManager (DEFER unless needed)
-7. **Agent 07**: Document Android blockers (separate from gameplay acceptance)
-8. **Agent 00**: Integrate approved work, run regression tests, produce consolidated MVP-02.1 report
+1. **User Authorization**: Review Android SDK licenses and authorize package download (`platform-tools`, `build-tools;34.0.0`) to unblock headless debug APK export.
+2. **Project Owner**: Review Environment Setup & Runtime Readiness completion.
+3. **MVP-04 Authorization**: Runtime integration and playable song (when authorized).
 
 ## Blocker Log
 
 | ID | Blocker | Owner | Resolution |
 |----|---------|-------|------------|
-| B-01 | Godot 4 not installed | Agent 07 / user | Manual install required before editor work / Android export |
-| B-02 | Android SDK not installed | Agent 07 / user | Manual install required before APK generation |
-| B-03 | librosa/demucs not installed | Agent 03 / user | `pip install librosa demucs` required for chart pipeline |
-| B-04 | No Android device/emulator | user | Required for T-23 device testing; provide device or emulator |
-| B-05 | GameController/GameStateManager in main but MainMenu not wired | Agent 01 | Connect MainMenu Play button to GameController |
-| B-06 | GameScene.gd incomplete (no HUD wiring) | Agent 04 | Implement HUD, pause, results transition |
-| B-07 | Gameplay unit tests missing | Agent 06 | Add per T-MVP-02.1c |
-| B-08 | Duplicate -2 branches/worktrees | Agent 00 | Archive or delete with approval |
+| B-01 | Godot 4 not installed | Agent 07 / user | **RESOLVED**: Godot 4.3 stable and export templates installed user-locally. Verified via runtime execution. |
+| B-02 | Android SDK packages | Agent 07 / user | **PARTIALLY RESOLVED**: cmdline-tools 12.0 and OpenJDK 17 installed; `build-tools;34.0.0` and `platform-tools` require license acceptance. |
+| B-03 | Audio DSP packages | Agent 03 / user | **RESOLVED**: `librosa`, `soundfile`, `numpy`, `scipy` installed in `.venv`. Pipeline generates 4-lane charts from audio. Demucs isolated. |
+| B-04 | No Android device/emulator | user | External hardware dependency; required for L5/L6 testing. |
 
 ## Integration Log
 
@@ -56,9 +50,20 @@
 | 2026-11-01 | local (Chief Engineer) | main | fe878c5 | Agent 00 | SUCCESS | Management docs update |
 | 2026-11-01 | local (Chief Engineer) | main | 85f334a | Agent 00 | SUCCESS | MVP02 integration report |
 | 2026-11-01 | local (Chief Engineer) | main | 14eb0e5 | Agent 00 | SUCCESS | Execution log update |
+| 2026-11-02 | local (Chief Engineer) | main | 0a57da0 | Agent 00 | SUCCESS | MVP-03 specialist implementation |
+| 2026-11-02 | local (Chief Engineer) | main | 5f0c1fc | Agent 00 | SUCCESS | Architecture doc merge |
+| 2026-11-02 | local (Chief Engineer) | main | a87a58e | Agent 00 | SUCCESS | Gameplay merge |
+| 2026-11-02 | local (Chief Engineer) | main | 4f384bc | Agent 00 | SUCCESS | Audio merge |
+| 2026-11-02 | local (Chief Engineer) | main | 6221c02 | Agent 00 | SUCCESS | UI merge |
+| 2026-11-02 | local (Chief Engineer) | main | 8fde7a0 | Agent 00 | SUCCESS | Systems merge |
+| 2026-11-02 | local (Chief Engineer) | main | 1fea25d | Agent 00 | SUCCESS | Final merge commit |
 
 ## Decision Register (To Be Populated)
 
 | ID | Date | Decision | Rationale | Author |
 |----|------|----------|-----------|--------|
 | — | — | — | — | — |
+| 2026-11-02 | Agent 00 (Codex workspace) | **MASTER COMPLETION EXECUTION — PLAYABLE AUDIO PATH REPAIRED** | Preserved all pre-existing staged changes. Fixed GameScene to bind/validate the local audio asset declared in chart metadata and set the actual stream duration; corrected menu and song-library routes to the packaged `example_track_chart.json`; removed nonexistent demo catalogue entries; made GameScene the single owner of starting playback; updated pipeline metadata to preserve the actual input audio extension. Expanded runtime smoke assertion to verify audio binding. Validation: Python 141/141; Godot 4.3 headless runtime 23/23 (audio binding included); chart pipeline generated 42 notes at 129.2 BPM and its JSON matched the packaged chart byte-for-byte; Python compile and `git diff --check` passed. Android APK export remains unavailable because SDK platform/build-tools are absent; no emulator/device is connected. Remaining product gaps include settings/profile/progression/modes, true song results flow, and Android/device release validation. |
+| 2026-11-02 | Agent 00 (Codex workspace) | **CONTINUATION — LEAK CLEANUP, SETTINGS, CLASSIC RESULTS/PROFILE** | Investigated verbose Godot shutdown leak: gameplay scene owned an AudioStreamPlayer still referenced by AudioSync autoload; smoke quit before deferred scene/audio mixer cleanup. Added `_exit_tree` release and harness mixer drain. Added persistent Music/SFX bus controls, reset defaults, calibration UI and shared settings persistence, generated judgment cues, dedicated classic results view, idempotent run persistence (score/accuracy/counts/grade/combo/bests/history/XP), and app icon. Added license register; bundled OGG is UNVERIFIED and barred from distribution. Updated smoke suite to 25 checks. Validation: 25/25 Godot 4.3 headless checks pass with no ObjectDB/resource-in-use warnings; 141 Python tests pass; chart generation and `py_compile` pass. Remaining layout warning is documented. Android export remains blocked by absent SDK packages; modes beyond Classic, full progression UI, and device validation remain open. Existing staged work preserved; no commit created. |
+| 2026-11-02 | Agent 00 (Codex workspace) | **CONTINUATION UPDATE — PROFILE VIEW AND LAYOUT CLEANUP** | Added an in-app profile screen backed by persisted profile data, expanded smoke coverage to 26 checks, fixed the pause-button anchor warning, and validated the completed classic results/profile flow. Latest verbose Godot 4.3 run: 26/26 passed, no ObjectDB/resource-in-use or Control layout warnings. Python: 141 passed. The prior 25-check entry remains as history. |
+| 2026-11-02 | Agent 00 (Codex workspace) | **UI/UX OVERHAUL — SOURCE IMPLEMENTATION AND HEADLESS VALIDATION** | Inspected the supplied gameplay capture and traced the three pink bars to pooled note controls, the absent lanes to LaneManager's missing draw path, the gray baseline to the fixed judgment rectangle, and the score/pause presentation to HUD anchoring/layout. Added shared visual tokens/theme/atmosphere, viewport-calculated lanes and receptor feedback, rounded pooled note panels, dynamic judgment line, score/combo/accuracy/song/progress HUD, compact responsive application panels, song metadata/audio validation, main menu branding, and a results score/grade hierarchy. Fixed GameController resume signaling so pause UI and AudioSync resume together. Preserved the user screenshot as baseline evidence. Validation: Godot editor/headless smoke 27/27; Python 141 passed. GUI launch failed because X11 and Wayland are unavailable; headless movie capture crashed under the dummy renderer. No after screenshot, GUI visual acceptance, mobile display validation, APK, or device validation is claimed. Live collaboration showed no specialists available; no specialist contribution is claimed. No commit, branch, worktree, or new agent created. |

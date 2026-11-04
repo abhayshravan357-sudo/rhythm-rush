@@ -14,6 +14,7 @@ Worktree: /home/abhaysawant/project-rhythm-android
 | Version code/name tracking | Defined | None (documentation only) |
 | Release signing prep | Documented | User approval mandatory (no release without sign-off) |
 | Export templates | Documented | B-01 (Godot 4 export templates not available) |
+| Android audio readiness | Documented (not device-verified) | B-01, B-02, B-04 |
 
 **Overall: BLOCKED.** No debug APK can be generated until Godot 4 and the Android SDK are installed. All configuration is documented and ready to apply once the toolchain is present.
 
