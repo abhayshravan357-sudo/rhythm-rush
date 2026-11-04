@@ -8,7 +8,6 @@
 # corrupt fields. No secrets are stored.
 
 extends Node
-class_name PlayerProfile
 
 signal profile_loaded
 signal profile_saved
@@ -29,6 +28,8 @@ var _profile: Dictionary = {
 	"misses": 0,
 	"max_combo_ever": 0,
 	"high_scores": {},
+	"best_accuracy": {},
+	"result_history": [],
 	"song_unlocks": {},
 	"achievements": {},
 	"daily": {
@@ -80,6 +81,14 @@ func load_profile() -> Dictionary:
 			var song_id: String = str(key)
 			var score: int = maxi(0, int(raw_scores[key]))
 			high_scores[song_id] = score
+	var best_accuracy: Dictionary = {}
+	var raw_accuracy: Variant = config.get_value("scores", "best_accuracy", {})
+	if typeof(raw_accuracy) == TYPE_DICTIONARY:
+		for key: Variant in raw_accuracy.keys():
+			var accuracy := float(raw_accuracy[key])
+			best_accuracy[str(key)] = clampf(accuracy, 0.0, 100.0) if is_finite(accuracy) else 0.0
+	var raw_history: Variant = config.get_value("history", "results", [])
+	var result_history: Array = raw_history.slice(maxi(0, raw_history.size() - 100)) if raw_history is Array else []
 
 	var song_unlocks: Dictionary = {}
 	var raw_unlocks: Variant = config.get_value("progression", "song_unlocks", {})
@@ -116,6 +125,8 @@ func load_profile() -> Dictionary:
 		"misses": raw_misses,
 		"max_combo_ever": raw_max_combo,
 		"high_scores": high_scores,
+		"best_accuracy": best_accuracy,
+		"result_history": result_history,
 		"song_unlocks": song_unlocks,
 		"achievements": achievements,
 		"daily": daily,
@@ -144,6 +155,8 @@ func save_profile() -> bool:
 	for key: Variant in _profile.get("high_scores", {}).keys():
 		scores_section[str(key)] = int(_profile.get("high_scores", {}).get(key, 0))
 	config.set_value("scores", "high_scores", scores_section)
+	config.set_value("scores", "best_accuracy", _profile.get("best_accuracy", {}))
+	config.set_value("history", "results", _profile.get("result_history", []))
 
 	var unlocks_section: Dictionary = {}
 	for key: Variant in _profile.get("song_unlocks", {}).keys():
@@ -207,7 +220,6 @@ func update_high_score(song_id: String, score: int) -> bool:
 	if score <= current:
 		return false
 	_profile.get("high_scores", {})[song_id] = score
-	_profile["total_score"] = maxi(0, int(_profile.get("total_score", 0)) + score)
 	_dirty = true
 	emit_signal("high_score_updated", song_id, score)
 	return true
@@ -231,6 +243,8 @@ func record_play(result: Dictionary) -> void:
 	var perfects: int = maxi(0, int(result.get("perfects", 0)))
 	var goods: int = maxi(0, int(result.get("goods", 0)))
 	var misses: int = maxi(0, int(result.get("misses", 0)))
+	var song_id := String(result.get("song_id", ""))
+	var accuracy := clampf(float(result.get("accuracy", 0.0)), 0.0, 100.0)
 
 	_profile["plays"] = maxi(0, int(_profile.get("plays", 0))) + 1
 	_profile["total_score"] = maxi(0, int(_profile.get("total_score", 0))) + score
@@ -238,6 +252,20 @@ func record_play(result: Dictionary) -> void:
 	_profile["goods"] = maxi(0, int(_profile.get("goods", 0))) + goods
 	_profile["misses"] = maxi(0, int(_profile.get("misses", 0))) + misses
 	_profile["max_combo_ever"] = maxi(int(_profile.get("max_combo_ever", 0)), combo)
+	if song_id != "":
+		var high_scores: Dictionary = _profile.get("high_scores", {})
+		if score > int(high_scores.get(song_id, 0)):
+			high_scores[song_id] = score
+			emit_signal("high_score_updated", song_id, score)
+		var accuracy_records: Dictionary = _profile.get("best_accuracy", {})
+		accuracy_records[song_id] = maxf(float(accuracy_records.get(song_id, 0.0)), accuracy)
+	var history: Array = _profile.get("result_history", [])
+	var saved_result := result.duplicate(true)
+	saved_result["accuracy"] = accuracy
+	history.append(saved_result)
+	if history.size() > 100:
+		history.pop_front()
+	_profile["result_history"] = history
 
 	_dirty = true
 
@@ -281,6 +309,8 @@ func _default_profile() -> Dictionary:
 		"misses": 0,
 		"max_combo_ever": 0,
 		"high_scores": {},
+		"best_accuracy": {},
+		"result_history": [],
 		"song_unlocks": {},
 		"achievements": {},
 		"daily": {
