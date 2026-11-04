@@ -30,6 +30,11 @@ const POINTS_GOOD: int = 100
 ## Combo values that trigger a milestone burst
 const COMBO_MILESTONES: Array[int] = [10, 25, 50, 75, 100]
 
+## Judgment flash flash duration (seconds)
+const JUDGMENT_FLASH_DURATION: float = 0.12
+
+@onready var flash_overlay: ColorRect = $JudgmentFlash
+
 @onready var score_label: Label = $HUD/ScoreLabel
 @onready var combo_label: Label = $HUD/ComboLabel
 @onready var rating_label: Label = $HUD/RatingLabel
@@ -144,6 +149,18 @@ func _show_rating_feedback(rating: String) -> void:
 	tween.tween_property(rating_label, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(rating_label, "modulate:a", 0.0, 0.45).set_delay(0.05)
 	_rating_tween = tween
+
+	# Full-screen color flash on judgment
+	_flash_judgment_color(rating)
+
+
+func _flash_judgment_color(rating: String) -> void:
+	var color: Color = _rating_color(rating)
+	flash_overlay.color = Color(color.r, color.g, color.b, 0.35)
+	flash_overlay.visible = true
+	var tween := create_tween()
+	tween.tween_property(flash_overlay, "modulate:a", 0.0, JUDGMENT_FLASH_DURATION)
+	tween.tween_callback(Callable(flash_overlay, "set_visible").bind(false))
 
 
 func _show_timing_feedback(rating: String) -> void:

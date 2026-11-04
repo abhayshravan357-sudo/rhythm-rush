@@ -1,0 +1,220 @@
+[gd_scene load_steps=5 format=3 uid="uid://main_hub"]
+
+[ext_resource type="Script" path="res://scripts/ui/MainHubUI.gd" id="1_hub_ui"]
+[ext_resource type="Theme" path="res://assets/theme/hexarhythm_theme.tres" id="2_theme"]
+
+[node name="MainHub" type="CanvasLayer"]
+script = ExtResource("1_hub_ui")
+theme = ExtResource("2_theme")
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.03, 0.045, 0.08, 1)
+mouse_filter = 2
+
+[node name="LeftAccent" type="ColorRect" parent="."]
+anchor_left = 0.0
+anchor_right = 0.0
+anchor_top = 0.0
+anchor_bottom = 1.0
+offset_right = 4.0
+color = Color(0.24, 0.68, 0.88, 1)
+
+[node name="RightAccent" type="ColorRect" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_top = 0.0
+anchor_bottom = 1.0
+offset_left = -4.0
+color = Color(1.0, 0.33, 0.8, 1)
+
+[node name="TitleLabel" type="Label" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = -260.0
+offset_top = 32.0
+offset_right = 260.0
+offset_bottom = 100.0
+text = "HexaRhythm"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 64
+theme_override_colors/font_color = Color(0.28, 0.83, 1, 1)
+
+[node name="Tagline" type="Label" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = -260.0
+offset_top = 100.0
+offset_right = 260.0
+offset_bottom = 140.0
+text = "TAP INTO THE RHYTHM"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.55, 0.68, 0.82, 1)
+
+[node name="HubContainer" type="VBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = -480.0
+offset_right = 480.0
+offset_top = -280.0
+offset_bottom = 280.0
+alignment = 1
+theme_override_constants/separation = 24
+
+[node name="Lane01" type="VBoxContainer" parent="HubContainer"]
+name = "Lane01"
+theme_override_constants/separation = 10
+
+[node name="Lane01Title" type="Label" parent="HubContainer/Lane01"]
+text = "LANE 01 — DISCOVER"
+horizontal_alignment = 0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.24, 0.68, 0.88, 1)
+
+[node name="Lane01Tiles" type="HBoxContainer" parent="HubContainer/Lane01"]
+alignment = 0
+theme_override_constants/separation = 12
+
+[node name="TileDiscoverFeatured" type="Button" parent="HubContainer/Lane01/Lane01Tiles"]
+name = "TileDiscoverFeatured"
+custom_minimum_size = Vector2(200, 96)
+text = "FEATURED SONGS"
+theme_override_font_sizes/font_size = 16
+theme_type_variation = &"PrimaryButton"
+
+[node name="TileDiscoverNew" type="Button" parent="HubContainer/Lane01/Lane01Tiles"]
+name = "TileDiscoverNew"
+custom_minimum_size = Vector2(200, 96)
+text = "NEW RELEASES"
+theme_override_font_sizes/font_size = 16
+
+[node name="TileDiscoverRecommended" type="Button" parent="HubContainer/Lane01/Lane01Tiles"]
+name = "TileDiscoverRecommended"
+custom_minimum_size = Vector2(200, 96)
+text = "RECOMMENDED"
+theme_override_font_sizes/font_size = 16
+
+[node name="Lane02" type="VBoxContainer" parent="HubContainer"]
+name = "Lane02"
+theme_override_constants/separation = 10
+
+[node name="Lane02Title" type="Label" parent="HubContainer/Lane02"]
+text = "LANE 02 — PLAY"
+horizontal_alignment = 0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.24, 0.68, 0.88, 1)
+
+[node name="Lane02Tiles" type="HBoxContainer" parent="HubContainer/Lane02"]
+alignment = 0
+theme_override_constants/separation = 12
+
+[node name="TilePlayQuickPlay" type="Button" parent="HubContainer/Lane02/Lane02Tiles"]
+name = "TilePlayQuickPlay"
+custom_minimum_size = Vector2(200, 96)
+text = "QUICK PLAY"
+theme_override_font_sizes/font_size = 16
+theme_type_variation = &"PrimaryButton"
+
+[node name="TilePlaySongSelection" type="Button" parent="HubContainer/Lane02/Lane02Tiles"]
+name = "TilePlaySongSelection"
+custom_minimum_size = Vector2(200, 96)
+text = "SONG SELECTION"
+theme_override_font_sizes/font_size = 16
+
+[node name="TilePlayContinue" type="Button" parent="HubContainer/Lane02/Lane02Tiles"]
+name = "TilePlayContinue"
+custom_minimum_size = Vector2(200, 96)
+text = "CONTINUE PLAYING"
+theme_override_font_sizes/font_size = 16
+
+[node name="Lane03" type="VBoxContainer" parent="HubContainer"]
+name = "Lane03"
+theme_override_constants/separation = 10
+
+[node name="Lane03Title" type="Label" parent="HubContainer/Lane03"]
+text = "LANE 03 — CHALLENGES"
+horizontal_alignment = 0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.24, 0.68, 0.88, 1)
+
+[node name="Lane03Tiles" type="HBoxContainer" parent="HubContainer/Lane03"]
+alignment = 0
+theme_override_constants/separation = 12
+
+[node name="TileChallengeDaily" type="Button" parent="HubContainer/Lane03/Lane03Tiles"]
+name = "TileChallengeDaily"
+custom_minimum_size = Vector2(200, 96)
+text = "DAILY CHALLENGE"
+theme_override_font_sizes/font_size = 16
+
+[node name="TileChallengeCombo" type="Button" parent="HubContainer/Lane03/Lane03Tiles"]
+name = "TileChallengeCombo"
+custom_minimum_size = Vector2(200, 96)
+text = "COMBO CHALLENGE"
+theme_override_font_sizes/font_size = 16
+
+[node name="TileChallengeAccuracy" type="Button" parent="HubContainer/Lane03/Lane03Tiles"]
+name = "TileChallengeAccuracy"
+custom_minimum_size = Vector2(200, 96)
+text = "ACCURACY CHALLENGE"
+theme_override_font_sizes/font_size = 16
+
+[node name="Lane04" type="VBoxContainer" parent="HubContainer"]
+name = "Lane04"
+theme_override_constants/separation = 10
+
+[node name="Lane04Title" type="Label" parent="HubContainer/Lane04"]
+text = "LANE 04 — PLAYER ZONE"
+horizontal_alignment = 0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.24, 0.68, 0.88, 1)
+
+[node name="Lane04Tiles" type="HBoxContainer" parent="HubContainer/Lane04"]
+alignment = 0
+theme_override_constants/separation = 12
+
+[node name="TilePlayerProfile" type="Button" parent="HubContainer/Lane04/Lane04Tiles"]
+name = "TilePlayerProfile"
+custom_minimum_size = Vector2(200, 96)
+text = "PLAYER PROFILE"
+theme_override_font_sizes/font_size = 16
+theme_type_variation = &"PrimaryButton"
+
+[node name="TilePlayerStatistics" type="Button" parent="HubContainer/Lane04/Lane04Tiles"]
+name = "TilePlayerStatistics"
+custom_minimum_size = Vector2(200, 96)
+text = "STATISTICS"
+theme_override_font_sizes/font_size = 16
+
+[node name="TilePlayerAchievements" type="Button" parent="HubContainer/Lane04/Lane04Tiles"]
+name = "TilePlayerAchievements"
+custom_minimum_size = Vector2(200, 96)
+text = "ACHIEVEMENTS"
+theme_override_font_sizes/font_size = 16
+
+[node name="TilePlayerBests" type="Button" parent="HubContainer/Lane04/Lane04Tiles"]
+name = "TilePlayerBests"
+custom_minimum_size = Vector2(200, 96)
+text = "PERSONAL BESTS"
+theme_override_font_sizes/font_size = 16
+
+[node name="StatusLabel" type="Label" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -52.0
+offset_right = 200.0
+offset_bottom = -16.0
+text = ""
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.55, 0.68, 0.82, 1)
