@@ -27,6 +27,8 @@ class LaneManager:
         self.column_width_step = self.config.screen_width / float(self.lane_count)
         self.fixed_judgment_y = self.config.screen_height * self.config.judgment_line_ratio
         self.input_enabled = False
+        # MVP-04: touch deadzone radius in pixels.
+        self.touch_deadzone_radius: float = 8.0
 
     def _normalize_lane_count(self, count: int) -> int:
         """Clamp lane count to [4, 6] per GameConfig rules."""
@@ -63,6 +65,25 @@ class LaneManager:
 
     def get_total_drop_distance(self) -> float:
         return self.fixed_judgment_y
+
+    def set_touch_deadzone(self, radius_pixels: float) -> None:
+        self.touch_deadzone_radius = max(0.0, float(radius_pixels))
+
+    def get_touch_deadzone_radius(self) -> float:
+        return self.touch_deadzone_radius
+
+    def is_tap_in_deadzone(self, screen_x: float, lane_index: int) -> bool:
+        """Return True if a tap at screen_x is within the deadzone of lane_index boundaries."""
+        if self.touch_deadzone_radius <= 0.0:
+            return False
+        lane_x = float(lane_index) * self.column_width_step
+        left_edge = lane_x + 2.0
+        right_edge = lane_x + self.column_width_step - 2.0
+        if screen_x < left_edge + self.touch_deadzone_radius and screen_x > left_edge - self.touch_deadzone_radius:
+            return True
+        if screen_x < right_edge + self.touch_deadzone_radius and screen_x > right_edge - self.touch_deadzone_radius:
+            return True
+        return False
 
     def process_touch(self, screen_x: float, pressed: bool) -> int | None:
         """Process a touch event. Returns lane index if touch down, None otherwise.
