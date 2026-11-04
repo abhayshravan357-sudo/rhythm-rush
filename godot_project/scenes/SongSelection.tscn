@@ -1,37 +1,20 @@
-[gd_scene load_steps=2 format=3 uid="uid://song_selection"]
+[gd_scene load_steps=4 format=3 uid="uid://song_selection"]
 
 [ext_resource type="Script" path="res://scripts/ui/SongSelectionUI.gd" id="1_sel_ui"]
-
-[sub_resource type="StyleBoxFlat" id="btn_normal"]
-bg_color = Color(0.10, 0.14, 0.22, 1)
-border_width = Vector2(1, 1)
-border_color = Color(0.25, 0.45, 0.75, 1)
-border_blur = 2
-corner_radius = Vector2(10, 10)
-
-[sub_resource type="StyleBoxFlat" id="btn_hover"]
-bg_color = Color(0.18, 0.28, 0.45, 1)
-border_width = Vector2(1, 1)
-border_color = Color(0.40, 0.70, 1.00, 1)
-border_blur = 2
-corner_radius = Vector2(10, 10)
-
-[sub_resource type="StyleBoxFlat" id="btn_pressed"]
-bg_color = Color(0.30, 0.20, 0.50, 1)
-border_width = Vector2(1, 1)
-border_color = Color(0.70, 0.40, 1.00, 1)
-border_blur = 2
-corner_radius = Vector2(10, 10)
+[ext_resource type="Theme" path="res://assets/theme/hexarhythm_theme.tres" id="2_theme"]
+[ext_resource type="Script" path="res://scripts/ui/AtmosphereBackground.gd" id="3_atmosphere"]
 
 [node name="SongSelection" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource("1_sel_ui")
+theme = ExtResource("2_theme")
 
 [node name="Background" type="ColorRect" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.04, 0.04, 0.08, 1)
+script = ExtResource("3_atmosphere")
 
 [node name="VBox" type="VBoxContainer" parent="."]
 anchor_left = 0.5
@@ -45,8 +28,26 @@ alignment = 1
 [node name="TitleLabel" type="Label" parent="VBox"]
 text = "SONG LIBRARY"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 60
+theme_override_font_sizes/font_size = 50
 theme_override_colors/font_color = Color(0.20, 0.75, 1.00, 1)
+
+[node name="SelectedTitle" type="Label" parent="VBox"]
+text = "CHOOSE A TRACK"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.92, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 30
+
+[node name="SongMetadata" type="Label" parent="VBox"]
+text = "Select a track to view its details."
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.57, 0.69, 0.82, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="BestScore" type="Label" parent="VBox"]
+text = ""
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 0.79, 0.35, 1)
+theme_override_font_sizes/font_size = 18
 
 [node name="Spacer1" type="Control" parent="VBox"]
 custom_minimum_size = Vector2(0, 20)
@@ -54,7 +55,8 @@ custom_minimum_size = Vector2(0, 20)
 [node name="SongList" type="ItemList" parent="VBox"]
 name = "SongList"
 custom_minimum_size = Vector2(0, 320)
-theme_override_font_sizes/font_size = 24
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 22
 
 [node name="Spacer2" type="Control" parent="VBox"]
 custom_minimum_size = Vector2(0, 20)
@@ -65,12 +67,10 @@ alignment = 1
 [node name="PlayButton" type="Button" parent="VBox/HBox"]
 name = "PlayButton"
 custom_minimum_size = Vector2(180, 60)
+theme_type_variation = &"PrimaryButton"
 text = "Play"
 theme_override_font_sizes/font_size = 26
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_style_boxes/normal = SubResource("btn_normal")
-theme_override_style_boxes/hover = SubResource("btn_hover")
-theme_override_style_boxes/pressed = SubResource("btn_pressed")
 
 [node name="BackButton" type="Button" parent="VBox/HBox"]
 name = "BackButton"
@@ -78,9 +78,6 @@ custom_minimum_size = Vector2(180, 60)
 text = "Back"
 theme_override_font_sizes/font_size = 26
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_style_boxes/normal = SubResource("btn_normal")
-theme_override_style_boxes/hover = SubResource("btn_hover")
-theme_override_style_boxes/pressed = SubResource("btn_pressed")
 
 [node name="StatusLabel" type="Label" parent="VBox"]
 name = "StatusLabel"

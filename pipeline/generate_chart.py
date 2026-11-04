@@ -50,32 +50,38 @@ def main() -> None:
     allocator = LaneAllocator()
 
     # ── Phase 1: Stem isolation ────────────────────────────────────────────────
+    has_stems = False
+    drum_path = input_audio
+    vocal_path = None
+    other_path = None
+
     try:
         stem_directory = splitter.execute_separation(input_audio)
+        drum_path = str(stem_directory / "drums.wav")
+        vocal_path = str(stem_directory / "vocals.wav")
+        other_path = str(stem_directory / "other.wav")
+        has_stems = True
     except Exception as ex:
-        print(f"[Pipeline Crash] Demucs task failed: {ex}")
-        sys.exit(1)
-
-    drum_path = str(stem_directory / "drums.wav")
-    vocal_path = str(stem_directory / "vocals.wav")
-    other_path = str(stem_directory / "other.wav")
+        print(f"[Pipeline Notice] Demucs stem separation bypassed/unavailable ({ex}). Falling back to direct audio analysis.")
 
     # ── Phase 2: DSP extraction ────────────────────────────────────────────────
     print("[Pipeline Phase 2] Running transient DSP operations...")
     macro_tempo = detector.compute_bpm(drum_path)
 
-    drum_timestamps = detector.extract_filtered_onsets(drum_path, min_gap_ms=150)
-    vocal_timestamps = detector.extract_filtered_onsets(vocal_path, min_gap_ms=120)
-    melody_tonal_data = detector.extract_tonal_onsets(
-        other_path, min_gap_ms=200, fallback_to_yin=False
-    )
-
-    # ── Phase 3: Lane allocation ───────────────────────────────────────────────
-    print("[Pipeline Phase 3] Processing lane allocation matrix...")
     compiled_notes = []
-    compiled_notes.extend(allocator.process_drums(drum_timestamps))
-    compiled_notes.extend(allocator.process_vocals(vocal_timestamps))
-    compiled_notes.extend(allocator.process_melody(melody_tonal_data))
+    if has_stems and vocal_path and other_path:
+        drum_timestamps = detector.extract_filtered_onsets(drum_path, min_gap_ms=150)
+        vocal_timestamps = detector.extract_filtered_onsets(vocal_path, min_gap_ms=120)
+        melody_tonal_data = detector.extract_tonal_onsets(
+            other_path, min_gap_ms=200, fallback_to_yin=False
+        )
+        compiled_notes.extend(allocator.process_drums(drum_timestamps))
+        compiled_notes.extend(allocator.process_vocals(vocal_timestamps))
+        compiled_notes.extend(allocator.process_melody(melody_tonal_data))
+    else:
+        # Direct full-mix onset extraction for 4-lane chart
+        mix_timestamps = detector.extract_filtered_onsets(drum_path, min_gap_ms=180)
+        compiled_notes.extend(allocator.process_drums(mix_timestamps))
 
     # Enforce global chronological sort
     compiled_notes.sort(key=lambda x: x["timestamp"])
@@ -90,8 +96,10 @@ def main() -> None:
             "songName": Path(input_audio).stem,
             "bpm": round(macro_tempo, 2),
             "totalDuration": total_duration_seconds,
-            "laneCount": 6,
-            "audioFile": f"{Path(input_audio).stem}.ogg",
+            "laneCount": 4 if not has_stems else 6,
+            # Preserve the source extension so the packaged Godot audio asset
+            # can be resolved by GameScene instead of assuming conversion.
+            "audioFile": Path(input_audio).name,
             "waveformEnvelope": visual_envelope,
         },
         "noteTimeline": compiled_notes,
