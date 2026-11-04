@@ -33,7 +33,7 @@ const COMBO_MILESTONES: Array[int] = [10, 25, 50, 75, 100]
 ## Judgment flash flash duration (seconds)
 const JUDGMENT_FLASH_DURATION: float = 0.12
 
-@onready var flash_overlay: ColorRect = $JudgmentFlash
+@onready var flash_overlay: ColorRect = $HUD/JudgmentFlash
 
 @onready var score_label: Label = $HUD/ScoreLabel
 @onready var combo_label: Label = $HUD/ComboLabel
@@ -101,7 +101,7 @@ func _bootstrap_gameplay() -> void:
 
 
 func _on_hit_evaluated(rating: String, combo: int, accuracy: float) -> void:
-	score_label.text = str(ScoreManager.get_final_score()) + "  (" + str(round(accuracy, 1)) + "%)"
+	score_label.text = str(ScoreManager.get_final_score()) + "  (" + str(round(accuracy * 10) / 10.0) + "%)"
 	combo_label.text = "Combo: " + str(combo) if combo > 0 else ""
 	_show_rating_feedback(rating)
 	_show_timing_feedback(rating)
@@ -128,8 +128,8 @@ func _show_rating_feedback(rating: String) -> void:
 	rating_label.scale = Vector2.ONE
 
 	var tween := create_tween()
-	tween.tween_property(rating_label, "scale", Vector2(1.35, 1.35), 0.10).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.TRANS_EASE_OUT)
-	tween.tween_property(rating_label, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.TRANS_EASE_IN_OUT)
+	tween.tween_property(rating_label, "scale", Vector2(1.35, 1.35), 0.10).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(rating_label, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(rating_label, "modulate:a", 0.0, 0.45).set_delay(0.05)
 	_rating_tween = tween
 
@@ -173,7 +173,7 @@ func _show_combo_feedback(combo: int) -> void:
 	combo_label.scale = Vector2.ONE
 	var tween := create_tween()
 	tween.tween_property(combo_label, "scale", Vector2(1.25, 1.25), 0.10)
-	tween.tween_property(combo_label, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.TRANS_EASE_OUT)
+	tween.tween_property(combo_label, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_combo_tween = tween
 
 	if combo in COMBO_MILESTONES:
@@ -183,7 +183,7 @@ func _show_combo_feedback(combo: int) -> void:
 func _show_combo_burst(combo: int) -> void:
 	var burst: Label = Label.new()
 	burst.text = "COMBO x" + str(combo) + "!"
-	burst.theme_override_font_sizes["font_size"] = 48
+	burst.add_theme_font_size_override("font_size", 48)
 	burst.horizontal_alignment = 1
 	burst.modulate = Color(1.0, 0.85, 0.0, 1.0)
 	burst.scale = Vector2.ONE
@@ -208,7 +208,7 @@ func _show_floating_score(rating: String) -> void:
 
 	var float_label: Label = Label.new()
 	float_label.text = "+" + str(points)
-	float_label.theme_override_font_sizes["font_size"] = 32
+	float_label.add_theme_font_size_override("font_size", 32)
 	float_label.horizontal_alignment = 1
 	float_label.modulate = _rating_color(rating)
 	float_label.scale = Vector2.ONE
@@ -233,8 +233,8 @@ func _apply_pause_ui(paused: bool) -> void:
 
 
 func _on_game_state_changed(from_state: String, to_state: String) -> void:
-	var entering_paused: bool = to_state == GameStateManager.GameState.PAUSED
-	var leaving_paused: bool = from_state == GameStateManager.GameState.PAUSED
+	var entering_paused: bool = to_state == "PAUSED"
+	var leaving_paused: bool = from_state == "PAUSED"
 
 	if entering_paused:
 		_apply_pause_ui(true)
@@ -262,7 +262,7 @@ func _on_song_completed(final_score: int, max_combo: int, accuracy: float, grade
 	rating_label.text = "Song Complete — Grade: " + grade
 	rating_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	rating_label.scale = Vector2.ONE
-	combo_label.text = "Final Score: " + str(final_score) + " | Max Combo: " + str(max_combo) + " | Accuracy: " + str(round(accuracy * 100, 1)) + "%"
+	combo_label.text = "Final Score: " + str(final_score) + " | Max Combo: " + str(max_combo) + " | Accuracy: " + str(round(accuracy * 100 * 10) / 10.0) + "%"
 	score_label.text = str(final_score)
 	timing_label.text = "PERFECT ≤ 50 ms   ·   GOOD ≤ 100 ms   ·   MISS > 100 ms"
 	timing_label.modulate = Color(1.0, 1.0, 1.0, 0.4)
