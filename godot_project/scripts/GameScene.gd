@@ -272,8 +272,7 @@ func _on_retry_pressed() -> void:
 	# Restart the same song
 	GameController.prepare_song(GameController.current_song_id, GameController.current_chart_path)
 	note_spawner.start_spawning_sequence(GameController.current_chart)
-	AudioSync.start_audio_pipeline()
-	GameStateManager.transition_to(GameStateManager.GameState.PLAYING)
+	GameController.start_song()
 	lane_manager.set_input_enabled(true)
 	score_label.text = "0"
 	combo_label.text = ""
