@@ -99,6 +99,10 @@ func is_unlocked(song_id: Variant) -> bool:
 	var state: Variant = song_states[sid]
 	return bool(state.get("unlocked", false)) if typeof(state) == TYPE_DICTIONARY else false
 
+# Alias matching the requested API name.
+func is_song_unlocked(song_id: Variant) -> bool:
+	return is_unlocked(song_id)
+
 func get_progress(song_id: Variant) -> float:
 	var sid := _validate_song_id(song_id)
 	if sid == "" or not song_states.has(sid):
@@ -179,7 +183,13 @@ func unlock_song_on_score(song_id: Variant, score: int, threshold: int) -> bool:
 		return false
 	if score < threshold:
 		return false  # threshold not met
+	if bool(song_states[sid].get("unlocked", false)):
+		return true  # already unlocked
 	return unlock_song(sid)
+
+# Alias matching the requested API name.
+func unlock_on_score_threshold(song_id: Variant, score: int, threshold: int) -> bool:
+	return unlock_song_on_score(song_id, score, threshold)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────

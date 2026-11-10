@@ -192,6 +192,10 @@ func get_level() -> int:
 	return int(_profile.get("level", 1))
 
 
+func get_total_score() -> int:
+	return maxi(0, int(_profile.get("total_score", 0)))
+
+
 func get_xp() -> int:
 	return int(_profile.get("xp", 0))
 
