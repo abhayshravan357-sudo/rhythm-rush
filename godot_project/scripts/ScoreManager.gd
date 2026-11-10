@@ -27,6 +27,17 @@ const MAX_POINTS_PER_NOTE: int = 300
 const MAX_MULTIPLIER: int = 4
 const COMBO_TIER_STEP: int = 10
 
+# Difficulty score multipliers (applied to base points).
+const DIFFICULTY_EASY: float = 0.7
+const DIFFICULTY_NORMAL: float = 1.0
+const DIFFICULTY_HARD: float = 1.4
+const DIFFICULTY_EXPERT: float = 2.0
+
+# Hold note scoring: longer holds earn more points, capped at 3x.
+const HOLD_BASE_POINTS: int = 300
+const HOLD_DURATION_DIVISOR: float = 0.5  # seconds for 1x; clamp to [1.0, 3.0]
+const HOLD_MAX_MULTIPLIER: float = 3.0
+
 const GRADE_S: String = "S"
 const GRADE_A: String = "A"
 const GRADE_B: String = "B"
@@ -69,10 +80,31 @@ func reset_scoring_matrix(chart_payload: Dictionary) -> void:
 
 # ── Multiplier ────────────────────────────────────────────────────────────────
 
+# Existing combo-based multiplier (backward-compatible, no arguments).
 func get_multiplier() -> int:
 	"""Combo-based score multiplier. Tiers: 1x/2x/3x/4x, capped at MAX_MULTIPLIER."""
 	var tier: int = 1 + int(operational_combo_counter / COMBO_TIER_STEP)
 	return clampi(tier, 1, MAX_MULTIPLIER)
+
+
+# Difficulty score multiplier.
+func get_difficulty_multiplier(difficulty: String = "") -> float:
+	"""Difficulty score multiplier.
+
+	EASY=0.7, NORMAL=1.0, HARD=1.4, EXPERT=2.0. Unknown/empty defaults to NORMAL.
+	"""
+	var d: String = difficulty.to_upper()
+	match d:
+		"EASY": return DIFFICULTY_EASY
+		"HARD": return DIFFICULTY_HARD
+		"EXPERT": return DIFFICULTY_EXPERT
+		_: return DIFFICULTY_NORMAL
+
+
+# Combined score multiplier: combo tier * difficulty.
+func get_total_multiplier(difficulty: String = "") -> float:
+	"""Combined score multiplier: combo tier * difficulty."""
+	return float(get_multiplier()) * get_difficulty_multiplier(difficulty)
 
 
 # ── Queries ───────────────────────────────────────────────────────────────────
@@ -149,7 +181,7 @@ func is_sequence_complete() -> bool:
 
 # ── Input ─────────────────────────────────────────────────────────────────────
 
-func process_action_input(target_lane: int) -> void:
+func process_action_input(target_lane: int, difficulty: String = "") -> void:
 	if reference_timeline.is_empty():
 		return
 	if target_lane < 0 or target_lane >= GameConfig.normalize_lane_count(GameConfig.DEFAULT_LANE_COUNT):
@@ -176,10 +208,10 @@ func process_action_input(target_lane: int) -> void:
 	# Only taps within the GOOD window count as a hit; off-window taps are ignored
 	# and the note is auto-missed by _process once the window expires.
 	if best_delta <= AudioSync.get_judgment_window_good():
-		_evaluate_hit_precision(best_index, best_delta)
+		_evaluate_hit_precision(best_index, best_delta, difficulty)
 
 
-func _evaluate_hit_precision(note_index: int, error_delta: float) -> void:
+func _evaluate_hit_precision(note_index: int, error_delta: float, difficulty: String = "") -> void:
 	if resolved_flags.get(note_index, false):
 		return
 
@@ -204,47 +236,92 @@ func _evaluate_hit_precision(note_index: int, error_delta: float) -> void:
 		miss_count += 1
 		operational_combo_counter = 0
 
-	var multiplier: int = get_multiplier()
-	var points: int = base_points * multiplier
+	var difficulty_mult: float = get_difficulty_multiplier(difficulty)
+	var points: int = int(float(base_points) * float(get_multiplier()) * difficulty_mult)
 	absolute_accumulated_score += points
 	historical_maximum_combo = maxi(historical_maximum_combo, operational_combo_counter)
 	emit_signal("alignment_processed", rating, operational_combo_counter, get_accuracy())
-
-	# Resolve any simultaneous chord notes in other lanes at the same time
-	_resolve_simultaneous_chord(note_index, error_delta)
-
 	if is_sequence_complete() and not sequence_completed:
 		_finalize_sequence()
 
 
-# ── Simultaneous chord judgment ──────────────────────────────────────────────
+# ── Extended input: hold notes and chords ───────────────────────────────────
 
-# When a note is hit at time T in lane L, check for unresolved notes in other
-# lanes at approximately the same time (within CHORD_WINDOW seconds) and
-# resolve them as part of the same chord. This enables simultaneous multi-lane
-# input (chords) to be judged together.
-const CHORD_WINDOW: float = 0.030  # 30 ms simultaneity tolerance
+# Evaluate a completed hold note. Points accumulate with hold duration and are
+# scaled by the combo and difficulty multipliers. Returns {rating, points}.
+func process_hold_note(note_index: int, hold_duration_seconds: float, difficulty: String = "") -> Dictionary:
+	var result: Dictionary = {
+		"rating": "MISS",
+		"points": 0,
+	}
+	if note_index < 0 or note_index >= reference_timeline.size():
+		return result
+	if resolved_flags.get(note_index, false):
+		return result
 
-func _resolve_simultaneous_chord(primary_index: int, primary_time: float) -> void:
-	"""Resolve any unresolved notes at the same timestamp as primary_index
-	but in different lanes, treating them as a simultaneous chord hit."""
-	var primary_note: Dictionary = reference_timeline[primary_index]
-	var primary_lane: int = int(primary_note.get("lane", -1))
+	var hold_duration: float = maxi(0.0, float(hold_duration_seconds))
+	var hold_mult: float = clampf(hold_duration / HOLD_DURATION_DIVISOR, 1.0, HOLD_MAX_MULTIPLIER)
 
-	for i: int in range(reference_timeline.size()):
-		if i == primary_index:
+	resolved_flags[note_index] = true
+	resolved_notes_count += 1
+	operational_combo_counter += 1
+	perfect_count += 1
+
+	var points: int = int(float(HOLD_BASE_POINTS) * hold_mult * float(get_multiplier()) * get_difficulty_multiplier(difficulty))
+	absolute_accumulated_score += points
+	historical_maximum_combo = maxi(historical_maximum_combo, operational_combo_counter)
+
+	result["rating"] = "PERFECT"
+	result["points"] = points
+	emit_signal("alignment_processed", "PERFECT", operational_combo_counter, get_accuracy())
+	if is_sequence_complete() and not sequence_completed:
+		_finalize_sequence()
+	return result
+
+
+# Evaluate a simultaneous chord hit. Each note scores independently from its
+# rating; the combo counts only once for the whole chord. Returns total points.
+func process_chord_hit(note_indices: Array, ratings: Array, difficulty: String = "") -> int:
+	if typeof(note_indices) != TYPE_ARRAY or typeof(ratings) != TYPE_ARRAY:
+		return 0
+	if note_indices.size() == 0:
+		return 0
+
+	var total_base: int = 0
+	var newly_resolved: int = 0
+
+	for i: int in range(note_indices.size()):
+		var idx: int = int(note_indices[i])
+		if idx < 0 or idx >= reference_timeline.size():
 			continue
-		if resolved_flags.get(i, false):
+		if resolved_flags.get(idx, false):
 			continue
-		var note: Dictionary = reference_timeline[i]
-		var note_lane: int = int(note.get("lane", -1))
-		if note_lane == primary_lane:
-			continue  # same lane — not a chord, skip
-		var note_time: float = float(note.get("timestamp", 0.0))
-		var time_delta: float = absf(note_time - primary_time)
-		if time_delta <= CHORD_WINDOW:
-			# Resolve this note as part of the chord using its own timing delta
-			_evaluate_hit_precision(i, time_delta)
+		var rating: String = str(ratings.get(i, "MISS")).to_upper()
+		var base: int = 0
+		match rating:
+			"PERFECT": base = 300; perfect_count += 1
+			"GOOD": base = 100; good_count += 1
+			"OK": base = 50
+			"MISS": base = 0; miss_count += 1
+			_: base = 0; miss_count += 1
+		total_base += base
+		resolved_flags[idx] = true
+		resolved_notes_count += 1
+		newly_resolved += 1
+
+	# Combo counts once for the chord.
+	if newly_resolved > 0:
+		operational_combo_counter += 1
+
+	var difficulty_mult: float = get_difficulty_multiplier(difficulty)
+	var total_points: int = int(float(total_base) * float(get_multiplier()) * difficulty_mult)
+	absolute_accumulated_score += total_points
+	historical_maximum_combo = maxi(historical_maximum_combo, operational_combo_counter)
+
+	emit_signal("alignment_processed", "CHORD", operational_combo_counter, get_accuracy())
+	if is_sequence_complete() and not sequence_completed:
+		_finalize_sequence()
+	return total_points
 
 
 func _register_miss(note_index: int) -> void:
