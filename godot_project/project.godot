@@ -34,6 +34,8 @@ AudioFeedback="*res://scripts/systems/AudioFeedback.gd"
 OffsetCalibration="*res://scripts/OffsetCalibration.gd"
 PlayerProfile="*res://scripts/systems/PlayerProfile.gd"
 SettingsManager="*res://scripts/systems/SettingsManager.gd"
+GameStatePersistence="*res://scripts/core/GameStatePersistence.gd"
+SceneTransitionManager="*res://scripts/core/SceneTransitionManager.gd"
 
 [display]
 
