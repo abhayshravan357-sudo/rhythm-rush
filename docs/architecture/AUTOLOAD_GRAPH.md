@@ -3,7 +3,7 @@
 **Date:** 2026-11-04  
 **Owner:** Agent 01 — Game Architecture Engineer  
 **Branch:** agent/project-rhythm-architecture / c-016-autoload-graph  
-**Milestone:** MVP-01a / Batch 2
+**Milestone:** MVP-01a / Batch 2 + Tasks C-026..C-040
 
 ## 1. Overview
 
@@ -22,6 +22,8 @@ All seven core autoloads are registered in `project.godot:[autoload]` and their 
 | AudioSync | `godot_project/scripts/AudioSync.gd` | AudioSync | Authoritative audio-clock timing (`get_playback_position` + `get_time_since_last_mix`), pause/resume, calibration offset, drift analysis |
 | ScoreManager | `godot_project/scripts/ScoreManager.gd` | ScoreManager | Hit precision evaluation, combo tracking, score multiplier, accuracy, grade calculation |
 | OffsetCalibration | `godot_project/scripts/OffsetCalibration.gd` | OffsetCalibration | Latency calibration, user:// persistence of user offset |
+| SceneTransitionManager | `godot_project/scripts/core/SceneTransitionManager.gd` | SceneTransitionManager | Centralized scene loading, named scene registry, `change_scene_to()` |
+| GameStatePersistence | `godot_project/scripts/core/GameStatePersistence.gd` | GameStatePersistence | `user://` JSON game-state persistence with checksum validation |
 
 ### Registered but not yet documented in interface contracts
 | Autoload Name | Script Path | Registers As | Responsibility |
@@ -29,8 +31,9 @@ All seven core autoloads are registered in `project.godot:[autoload]` and their 
 | AudioFeedback | `godot_project/scripts/systems/AudioFeedback.gd` | AudioFeedback | Audio feedback / SFX playback |
 | SettingsManager | `godot_project/scripts/systems/SettingsManager.gd` | SettingsManager | User settings management |
 
-### Not registered (referenced in prior drafts but absent from project.godot)
-- **SceneLoader** — `godot_project/scripts/core/SceneLoader.gd` is MISSING from disk; not in project.godot
+### Not registered (script files exist on disk but not yet in project.godot:[autoload])
+- **SceneTransitionManager** — `godot_project/scripts/core/SceneTransitionManager.gd` exists; registration requires Agent 00 coordination
+- **GameStatePersistence** — `godot_project/scripts/core/GameStatePersistence.gd` exists; registration requires Agent 00 coordination
 - **SaveManager** — not in project.godot autoload section
 - **SongUnlockManager** — not in project.godot autoload section
 
@@ -45,6 +48,8 @@ The following order must be respected at application startup:
 4. AudioSync            (depends on GameConfig for approach time / judgment windows)
 5. ScoreManager         (depends on GameConfig for scoring constants, AudioSync for timing windows)
 6. GameController       (depends on ChartLoader, ScoreManager, AudioSync, GameStateManager)
+7. SceneTransitionManager (no external dependencies — pure scene utility)
+8. GameStatePersistence (depends on user:// file I/O only — independent)
 ```
 
 Additional autoloads (no gameplay ordering constraint):
@@ -59,6 +64,8 @@ Additional autoloads (no gameplay ordering constraint):
 - **AudioSync** needs GameConfig for timing constants and reads user:// offset in `_ready()`.
 - **ScoreManager** reads `AudioSync.adjusted_system_time` and `AudioSync.get_judgment_window_*()` during hit evaluation — AudioSync must be ready first.
 - **GameController** is the orchestrator — it calls `ChartLoader.load_chart()`, `ScoreManager.reset_scoring_matrix()`, `AudioSync.start_audio_pipeline()`, and `GameStateManager.transition_to()`.
+- **SceneTransitionManager** is a pure scene utility with no gameplay dependencies — it wraps `load()` and `get_tree().change_scene_to_packed()`.
+- **GameStatePersistence** performs `user://` file I/O only — independent of all other autoloads.
 
 ## 4. Interface Contracts
 
@@ -98,6 +105,23 @@ Additional autoloads (no gameplay ordering constraint):
 - `start_song()`, `pause_song()`, `resume_song()`, `complete_song()`, `game_over(...)`, `exit_to_menu()`
 - `song_loaded`, `song_started`, `song_paused`, `song_completed`, `game_over_triggered` signals
 
+### SceneTransitionManager → All consumers
+- `load_scene(path: String) -> PackedScene` — loads a PackedScene, returns null on failure
+- `change_scene(path: String) -> bool` — loads and changes scene in one call
+- `change_scene_to(scene_name: String) -> bool` — changes by registered logical name
+- `register_scene(name: String, path: String) -> void` — registers a named scene path
+- `get_scene_path(name: String) -> String` — resolves a registered path
+- `scene_loaded(path)` signal — emitted on successful load
+- `scene_load_failed(path, reason)` signal — emitted on load/change failure
+
+### GameStatePersistence → All consumers
+- `save_game_state(data_dict: Dictionary) -> bool` — persists with checksum to user://
+- `load_game_state() -> Dictionary` — loads and validates; returns {} on failure
+- `validate_save_data(payload: Dictionary) -> bool` — checks structure, version, checksum
+- `clear_save_data() -> bool` — deletes the persisted save file
+- `state_saved(path)` signal — emitted after successful save
+- `state_load_failed(reason)` signal — emitted on load/validation failure
+
 ## 5. Dependency Rules
 
 1. **No circular dependencies.** Autoloads must not reference each other in a circular manner. Verified: none found.
@@ -105,6 +129,8 @@ Additional autoloads (no gameplay ordering constraint):
 3. **GameController is the root orchestrator** — depends on all gameplay systems; nothing depends on it except UI scenes calling its signals.
 4. **AudioSync is the authoritative time source** — all timing-dependent systems read `adjusted_system_time`, never frame delta.
 5. **LaneManager is a scene Node2D, not an autoload** — it reads `GameConfig` and calls `ScoreManager.process_action_input` via signal.
+6. **SceneTransitionManager is a leaf utility** — depends on nothing except Godot's `load()` and SceneTree; safe to call from any UI script.
+7. **GameStatePersistence is a leaf utility** — depends only on `user://` file I/O and `Time`; safe to call from any system.
 
 ## 6. Integration Risks
 
@@ -129,17 +155,19 @@ LaneManager._ready() connects `column_touch_down` directly to `ScoreManager.proc
 Verified — no circular dependencies exist:
 
 ```
-GameConfig        → (none)
-GameStateManager  → (none)
-ChartLoader       → GameConfig
-AudioSync         → GameConfig
-ScoreManager      → GameConfig, AudioSync
-GameController    → ChartLoader, ScoreManager, AudioSync, GameStateManager
-LaneManager       → GameConfig, ScoreManager (scene node, not autoload)
-NoteSpawner       → AudioSync, LaneManager (scene node, not autoload)
+GameConfig              → (none)
+GameStateManager        → (none)
+ChartLoader             → GameConfig
+AudioSync               → GameConfig
+ScoreManager            → GameConfig, AudioSync
+GameController          → ChartLoader, ScoreManager, AudioSync, GameStateManager
+SceneTransitionManager  → (none)
+GameStatePersistence    → (none)
+LaneManager             → GameConfig, ScoreManager (scene node, not autoload)
+NoteSpawner             → AudioSync, LaneManager (scene node, not autoload)
 ```
 
-Dependency graph is acyclic. GameConfig → GameStateManager → ChartLoader → AudioSync → ScoreManager → GameController is a valid linear chain with no back-edges.
+Dependency graph is acyclic. GameConfig → GameStateManager → ChartLoader → AudioSync → ScoreManager → GameController is a valid linear chain with no back-edges. SceneTransitionManager and GameStatePersistence are leaves with no incoming gameplay dependencies.
 
 ## 8. Adding a New Autoload
 
