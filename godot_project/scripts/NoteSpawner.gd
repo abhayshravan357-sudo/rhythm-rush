@@ -5,8 +5,10 @@
 # instantiated during gameplay, eliminating GC pauses on mobile hardware.
 #
 # MVP-03 note lifecycle refinement:
-#   - get_expired_note_indices() exposes notes whose hit time passed without
-#     being spawned, enabling missed-note accounting alongside ScoreManager.
+#   - Difficulty multiplier: GameConfig.get_difficulty_multiplier() scales the
+#     spawn window so higher difficulties spawn notes later (shorter approach).
+#   - Simultaneous notes: all notes sharing a timestamp are deployed together,
+#     enabling same-timestamp multi-lane chords to render as a unit.
 #   - Expired notes are never rendered as valid upcoming notes; they are
 #     resolved as hits/misses by ScoreManager instead.
 #   - Object pooling: no duplicate/stale tiles, pool exhaustion logs warning.
@@ -94,9 +96,10 @@ func _process(_delta: float) -> void:
 	var playback_time: float = AudioSync.adjusted_system_time
 
 	# Spawn notes that are now within the visible approach window.
-	# A tile is only deployed before its intended hit time; notes already past
-	# their hit time are skipped (never rendered after hit time) and are
-	# resolved as hits/misses by ScoreManager instead.
+	# Difficulty multiplier shortens the effective approach window on higher
+	# difficulties: notes spawn later relative to their hit time.
+	# Simultaneous notes (same timestamp, different lanes) are deployed as a
+	# group so chords render together.
 	while next_evaluative_note_index < tracking_chart_timeline.size():
 		var note_data: Dictionary = tracking_chart_timeline[next_evaluative_note_index]
 		var hit_time: float = note_data["timestamp"]
@@ -107,13 +110,44 @@ func _process(_delta: float) -> void:
 			next_evaluative_note_index += 1
 			continue
 
-		if hit_time - AudioSync.APPROACH_TIME <= playback_time:
-			_deploy_pool_element(note_data, next_evaluative_note_index)
-			next_evaluative_note_index += 1
+		# Compute per-note approach window scaled by difficulty multiplier.
+		# Higher difficulty -> larger multiplier -> shorter effective approach.
+		var difficulty: String = get_difficulty_setting()
+		var diff_mult: float = GameConfig.get_difficulty_multiplier(difficulty)
+		var effective_approach: float = AudioSync.APPROACH_TIME / diff_mult
+
+		if hit_time - effective_approach <= playback_time:
+			# Deploy this note plus any simultaneous notes sharing its timestamp.
+			_deploy_simultaneous_group(next_evaluative_note_index, playback_time)
 		else:
 			break  # Timeline is sorted; no later note can qualify yet
 
 	_synchronize_active_elements(playback_time)
+
+
+# ── Simultaneous note deployment ──────────────────────────────────────────────
+
+func _deploy_simultaneous_group(start_index: int, playback_time: float) -> void:
+	"""Deploy all unresolved notes sharing the same timestamp as start_index."""
+	var base_time: float = tracking_chart_timeline[start_index]["timestamp"]
+	var i: int = start_index
+	while i < tracking_chart_timeline.size():
+		var note_data: Dictionary = tracking_chart_timeline[i]
+		if float(note_data["timestamp"]) != base_time:
+			break
+		if deployed_timeline_indices.has(i):
+			i += 1
+			continue
+		_deploy_pool_element(note_data, i)
+		i += 1
+	next_evaluative_note_index = i
+
+
+func get_difficulty_setting() -> String:
+	"""Read the active difficulty from GameController if available."""
+	if GameController.has_meta("difficulty"):
+		return GameController.get_meta("difficulty", "NORMAL")
+	return "NORMAL"
 
 
 func _deploy_pool_element(note_spec: Dictionary, timeline_index: int) -> void:
