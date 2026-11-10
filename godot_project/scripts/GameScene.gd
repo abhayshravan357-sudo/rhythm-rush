@@ -80,15 +80,23 @@ func _ready() -> void:
 
 func _bootstrap_gameplay() -> void:
 	"""Initialize gameplay systems via GameController."""
-	if GameController.current_chart.is_empty():
-		# No chart ready — this scene was opened without preparation.
-		# Fall back to main menu safely.
-		GameController.exit_to_menu()
-		return
+	var chart_data: Dictionary = GameController.current_chart
+
+	# If GameController hasn't loaded a chart yet (scene opened directly),
+	# load the default chart so gameplay can proceed standalone.
+	if chart_data.is_empty():
+		chart_data = ChartLoader.load_chart("res://charts/example_chart.json")
+		if chart_data.is_empty():
+			printerr("[GameScene] Failed to load example chart")
+			GameController.exit_to_menu()
+			return
+		GameController.current_chart = chart_data
+		GameController.current_chart_path = "res://charts/example_chart.json"
+		GameController.current_song_id = "example_track"
 
 	# Load the chart's audio file and bind it to the AudioPlayer before
 	# initializing the playback channel and starting the pipeline.
-	var meta: Dictionary = GameController.current_chart.get("metaData", {})
+	var meta: Dictionary = chart_data.get("metaData", {})
 	var audio_file: String = meta.get("audioFile", "")
 	var audio_stream: AudioStream = null
 	if not audio_file.is_empty():
@@ -97,13 +105,12 @@ func _bootstrap_gameplay() -> void:
 		if audio_stream != null:
 			$AudioPlayer.stream = audio_stream
 		else:
-			printerr("[GameScene] Failed to load audio: ", audio_path)
+			printerr("[GameScene] Failed to load audio: ", audio_file)
 
 	# Enable input only after all systems are ready
 	lane_manager.set_input_enabled(true)
 
 	# Start spawning tiles from the chart
-	var chart_data: Dictionary = GameController.current_chart
 	note_spawner.start_spawning_sequence(chart_data)
 
 	# Bind AudioPlayer to AudioSync, set song duration for completion detection,
